@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { IPCChannels } from "../types/ipc";
+import type { IPCChannels } from "@ipc-channel-types";
 
 const invoke = async <K extends keyof IPCChannels>(
   channel: K,

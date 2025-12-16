@@ -3,8 +3,20 @@ import { defineConfig } from "electron-vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  main: {},
-  preload: {},
+  main: {
+    build: {
+      bytecode: {
+        transformArrowFunctions: false,
+      },
+    },
+  },
+  preload: {
+    build: {
+      bytecode: {
+        transformArrowFunctions: false,
+      },
+    },
+  },
   renderer: {
     resolve: {
       alias: {

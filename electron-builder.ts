@@ -44,6 +44,10 @@ export default {
     uninstallDisplayName: productName,
     createDesktopShortcut: "always",
   },
+  electronFuses: {
+    enableEmbeddedAsarIntegrityValidation: true,
+    onlyLoadAppFromAsar: true,
+  },
   files: [
     "!**/.vscode/*",
     "!src/*",

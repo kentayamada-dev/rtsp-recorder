@@ -1,5 +1,5 @@
-import { ipcMain, IpcMainInvokeEvent } from "electron";
-import type { IPCChannels } from "../types/ipc";
+import { ipcMain, type IpcMainInvokeEvent } from "electron";
+import type { IPCChannels } from "@ipc-channel-types";
 
 const handle = <K extends keyof IPCChannels>(
   channel: K,
