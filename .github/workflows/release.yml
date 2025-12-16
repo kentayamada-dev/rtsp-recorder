@@ -1,0 +1,149 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Publish:
+    timeout-minutes: 5
+    runs-on: windows-latest
+    env:
+      VOLTA_FEATURE_PNPM: 1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.1
+
+      - name: Setup volta
+        uses: volta-cli/action@v4.2.1
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Publish
+        run: pnpm run build && pnpm exec electron-builder --publish always
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Upload asar
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: asar
+          path: dist/win-unpacked/resources/app.asar
+
+  GenerateElectronegativityReport:
+    timeout-minutes: 3
+    runs-on: ubuntu-latest
+    needs: Publish
+
+    steps:
+      - name: Download asar
+        uses: actions/download-artifact@v7.0.0
+        with:
+          name: asar
+
+      - name: Generate Electronegativity Report
+        run: |
+          npx @doyensec/electronegativity -i app.asar -o result.csv
+
+          # Read header from CSV
+          header=$(head -n 1 result.csv)
+          IFS=',' read -ra cols <<< "$header"
+
+          # Remove location from cols array and keep only needed columns
+          filtered_cols=()
+          location_idx=-1
+          for i in "${!cols[@]}"; do
+            col=$(echo "${cols[$i]}" | xargs)
+            col="${col%\"}"
+            col="${col#\"}"
+            if [[ "$col" == "location" ]]; then
+              location_idx=$i
+            elif [[ "$col" != "location" ]]; then
+              filtered_cols+=("$col")
+            fi
+          done
+
+          # Create table header
+          echo "## Security Analysis Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "|" $(IFS='|'; echo "${filtered_cols[*]}") "|" >> $GITHUB_STEP_SUMMARY
+
+          # Create separator
+          sep=""
+          for col in "${filtered_cols[@]}"; do
+            sep="$sep|-------"
+          done
+          echo "$sep|" >> $GITHUB_STEP_SUMMARY
+
+          # Read CSV rows and create table
+          tail -n +2 result.csv | while IFS=',' read -ra row; do
+            cleaned_row=()
+            for i in "${!row[@]}"; do
+              cell="${row[$i]}"
+              cell="${cell%\"}"
+              cell="${cell#\"}"
+              cell=$(echo "$cell" | xargs)
+
+              # Concat filename and location
+              if [[ $i -eq 3 ]]; then  # filename column
+                location="${row[$location_idx]}"
+                location="${location%\"}"
+                location="${location#\"}"
+                location=$(echo "$location" | xargs)
+
+                if [[ "$cell" != "N/A" ]]; then
+                  cell="$cell($location)"
+                fi
+                cleaned_row+=("$cell")
+              elif [[ $i -ne $location_idx ]]; then
+                cleaned_row+=("$cell")
+              fi
+            done
+            echo "|" $(IFS='|'; echo "${cleaned_row[*]}") "|" >> $GITHUB_STEP_SUMMARY
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+  DeletePreviousWorkflow:
+    timeout-minutes: 3
+    runs-on: ubuntu-latest
+    needs: Publish
+
+    steps:
+      - name: Delete previous workflow
+        run: |
+          owner="${{ github.repository_owner }}"
+          repo="${{ github.event.repository.name }}"
+          token="${{ secrets.GH_TOKEN }}"
+          workflow_name="${{ github.workflow }}"
+
+          # Fetch workflow ID by name
+          workflow_id=$(curl -s -H "Authorization: token $token" \
+          "https://api.github.com/repos/$owner/$repo/actions/workflows" \
+          | jq -r --arg name "$workflow_name" '.workflows[] | select(.name == $name) | .id')
+
+          # Get all workflow run IDs and delete all but the most recent one
+          if [ -n "$workflow_id" ]; then
+            run_ids=$(curl -s -H "Authorization: token $token" \
+            "https://api.github.com/repos/$owner/$repo/actions/workflows/$workflow_id/runs" \
+            | jq -r '.workflow_runs | map(.id) | .[1:][]')
+
+            if [ -n "$run_ids" ]; then
+              for run_id in $run_ids; do
+                curl -s -X DELETE -H "Authorization: token $token" \
+                "https://api.github.com/repos/$owner/$repo/actions/runs/$run_id" && echo "Deleted workflow run ID: $run_id"
+              done
+            else
+              echo "No previous workflow runs found to delete."
+            fi
+          else
+            echo "Workflow '$workflow_name' not found."
+          fi

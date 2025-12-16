@@ -1,0 +1,55 @@
+import { Configuration } from "electron-builder";
+
+const transformString = (str: string, mode: "replace" | "remove") => {
+  if (mode === "remove") {
+    return str.split(" ").join("");
+  } else if (mode === "replace") {
+    return str.toLowerCase().split(" ").join("-");
+  } else {
+    return str;
+  }
+};
+
+const getEnv = (key: string): string => {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`Missing environment variable: ${key}`);
+  }
+  return value;
+};
+
+const productName = getEnv("PRODUCT_NAME");
+const companyName = getEnv("COMPANY_NAME");
+
+export default {
+  productName,
+  appId: `com.${companyName}.${transformString(productName, "replace")}`,
+  npmRebuild: false,
+  directories: {
+    buildResources: "build",
+  },
+  publish: {
+    provider: "github",
+  },
+  win: {
+    target: [
+      {
+        target: "nsis",
+        arch: ["x64"],
+      },
+    ],
+  },
+  nsis: {
+    artifactName: `${transformString(productName, "remove")}Setup-\${arch}-\${version}.\${ext}`,
+    uninstallDisplayName: productName,
+    createDesktopShortcut: "always",
+  },
+  files: [
+    "!**/.vscode/*",
+    "!src/*",
+    "!electron.vite.config.ts",
+    "!{prettier.config.ts,.prettierignore,README.md}",
+    "!{.npmrc,pnpm-lock.yaml,pnpm-workspace.yaml}",
+    "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}",
+  ],
+} satisfies Configuration;
