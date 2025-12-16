@@ -25,6 +25,7 @@ export default {
   productName,
   appId: `com.${companyName}.${transformString(productName, "replace")}`,
   npmRebuild: false,
+  asarUnpack: "resources/**",
   directories: {
     buildResources: "build",
   },
@@ -52,7 +53,7 @@ export default {
     "!**/.vscode/*",
     "!src/*",
     "!electron.vite.config.ts",
-    "!{prettier.config.ts,.prettierignore,README.md}",
+    "!{prettier.config.ts,.prettierignore,README.md,note.md,LICENSE}",
     "!{.npmrc,pnpm-lock.yaml,pnpm-workspace.yaml}",
     "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}",
   ],
