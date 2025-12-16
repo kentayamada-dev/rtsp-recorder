@@ -45,17 +45,16 @@ function createWindow(): void {
 const setupAutoUpdater = (): void => {
   if (isDev) return;
 
-  autoUpdater.on("update-available", (info) => {
-    log.info("Update available:", info);
+  autoUpdater.on("update-available", () => {
     if (!mainWindow) return;
 
     dialog
       .showMessageBox(mainWindow, {
         type: "info",
-        title: "アップデート利用可能",
-        message: "新しいバージョンが利用可能です",
-        detail: "アップデートをダウンロードしてインストールしますか？",
-        buttons: ["今すぐ更新", "あとで"],
+        title: "Update Available",
+        message: "A new version is available",
+        detail: "Would you like to download and install the update?",
+        buttons: ["Update Now", "Later"],
       })
       .then((result) => {
         if (result.response === 0) {
@@ -70,10 +69,10 @@ const setupAutoUpdater = (): void => {
     dialog
       .showMessageBox(mainWindow, {
         type: "info",
-        title: "アップデート準備完了",
-        message: "アップデートの準備ができました",
-        detail: "アプリを再起動して更新を適用します",
-        buttons: ["今すぐ再起動", "あとで"],
+        title: "Update Ready",
+        message: "The update is ready",
+        detail: "Restart the app to apply the update",
+        buttons: ["Restart Now", "Later"],
       })
       .then((result) => {
         if (result.response === 0) {
@@ -82,10 +81,10 @@ const setupAutoUpdater = (): void => {
       });
   });
 
-  autoUpdater.on("error", (error) => {
+  autoUpdater.on("error", () => {
     dialog.showErrorBox(
-      "アップデートエラー",
-      error == null ? "unknown" : (error.stack || error).toString(),
+      "Update Error",
+      "Something went wrong while updating the app. Please try again later.",
     );
   });
 

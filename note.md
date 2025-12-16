@@ -47,3 +47,7 @@ autoUpdater.setFeedURL({
 Build again and replace files in `dist/`.
 
 ✅ autoUpdater will now detect an update locally.
+
+### App location
+
+%USERPROFILE%\AppData\Roaming\rtsp-recorder
