@@ -1,7 +1,11 @@
 import { BrowserWindow, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
+import { logger } from "./log";
 
 export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
+  autoUpdater.logger = logger;
+  autoUpdater.autoDownload = false;
+
   autoUpdater.on("update-available", () => {
     dialog
       .showMessageBox(mainWindow, {
@@ -41,6 +45,5 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
     );
   });
 
-  autoUpdater.autoDownload = false;
   autoUpdater.checkForUpdates();
 };

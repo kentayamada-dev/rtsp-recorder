@@ -1,8 +1,10 @@
+import { Typography } from "@mui/material";
+
 export const HelloWorld = ({ text }: { text: string }) => {
   console.log("hello world");
   return (
     <div>
-      <h1>{text}</h1>
+      <Typography variant="h1">{text}</Typography>
     </div>
   );
 };

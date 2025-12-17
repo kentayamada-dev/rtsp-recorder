@@ -1,20 +1,13 @@
 import { app } from "electron";
-import { autoUpdater } from "electron-updater";
-import log from "electron-log/main";
 import { setupIpc } from "./ipc";
 import { createMenu } from "./menu";
 import { createTray } from "./tray";
 import { createMainWindow, getMainWindow } from "./window";
 import { setIsQuitting } from "./state";
 
-const isDev = import.meta.env.DEV;
-
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
-
-log.initialize();
-autoUpdater.logger = log;
 
 app.on("before-quit", () => {
   setIsQuitting(true);
@@ -34,9 +27,11 @@ app.on("second-instance", (_event) => {
 });
 
 app.whenReady().then(() => {
+  const isDev = import.meta.env.DEV;
+
   setupIpc();
   createMainWindow({ isDev });
-  createMenu();
+  createMenu({ isDev });
   createTray(getMainWindow());
 });
 

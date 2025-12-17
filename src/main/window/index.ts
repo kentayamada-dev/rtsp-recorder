@@ -23,12 +23,6 @@ const createMainWindow = ({ isDev }: CreateWindowOptions): void => {
     },
   });
 
-  if (isDev) {
-    mainWindow.webContents.openDevTools({
-      mode: "detach",
-    });
-  }
-
   mainWindow.on("close", (e) => {
     if (getIsQuitting()) return;
 
