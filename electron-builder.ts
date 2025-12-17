@@ -31,6 +31,7 @@ export default {
   },
   publish: {
     provider: "github",
+    releaseType: "release",
   },
   win: {
     target: [

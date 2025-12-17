@@ -36,7 +36,7 @@ app.on("second-instance", (_event) => {
 app.whenReady().then(() => {
   setupIpc();
   createMainWindow({ isDev });
-  if (!isDev) createMenu();
+  createMenu();
   createTray(getMainWindow());
 });
 
