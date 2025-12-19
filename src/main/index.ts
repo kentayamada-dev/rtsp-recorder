@@ -27,12 +27,10 @@ app.on("second-instance", (_event) => {
 });
 
 app.whenReady().then(() => {
-  const isDev = import.meta.env.DEV;
-
   setupIpc();
-  createMainWindow({ isDev });
-  createMenu({ isDev });
-  createTray(getMainWindow());
+  createMainWindow();
+  createMenu();
+  createTray();
 });
 
 app.on("window-all-closed", () => {

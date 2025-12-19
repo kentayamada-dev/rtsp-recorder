@@ -3,8 +3,8 @@ import type { IPCChannels } from "@ipc-channel-types";
 
 const invoke = async <K extends keyof IPCChannels>(
   channel: K,
-  ...args: Parameters<IPCChannels[K]>
-): Promise<ReturnType<IPCChannels[K]>> => {
+  ...args: IPCChannels[K]["params"]
+): Promise<IPCChannels[K]["return"]> => {
   return ipcRenderer.invoke(channel, ...args);
 };
 

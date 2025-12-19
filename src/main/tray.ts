@@ -1,7 +1,10 @@
-import { BrowserWindow, Menu, Tray } from "electron";
+import { Menu, Tray } from "electron";
 import icon from "../../resources/icon.png?asset";
+import { getMainWindow } from "./window";
 
-export const createTray = (mainWindow: BrowserWindow | null) => {
+export const createTray = () => {
+  const mainWindow = getMainWindow();
+
   const tray = new Tray(icon);
   const trayMenu = Menu.buildFromTemplate([
     {

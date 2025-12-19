@@ -1,9 +1,11 @@
 import { BrowserWindow, shell } from "electron";
 import { join } from "node:path";
-import type { CreateWindowOptions, MainWindow } from "./type";
-import { setupAutoUpdater } from "../updater";
-import { getEnv } from "../utils";
-import { getIsQuitting } from "../state";
+import type { MainWindow } from "./type";
+import { getEnv, isDefined } from "@main/utils";
+import { getIsQuitting } from "@main/state";
+import { isDev } from "@main/config";
+import { getWindowState, saveWindowState } from "@main/store";
+import { setupAutoUpdater } from "@main/updater";
 
 let mainWindow: MainWindow = null;
 
@@ -11,10 +13,22 @@ const getMainWindow = (): MainWindow => {
   return mainWindow;
 };
 
-const createMainWindow = ({ isDev }: CreateWindowOptions): void => {
+const createMainWindow = (): void => {
+  const windowState = getWindowState();
+
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    ...(windowState
+      ? {
+          x: windowState.x,
+          y: windowState.y,
+          width: windowState.width,
+          height: windowState.height,
+        }
+      : {
+          center: true,
+          width: 1000,
+          height: 700,
+        }),
     show: false,
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
@@ -24,10 +38,24 @@ const createMainWindow = ({ isDev }: CreateWindowOptions): void => {
   });
 
   mainWindow.on("close", (e) => {
-    if (getIsQuitting()) return;
+    const isQuitting = getIsQuitting();
+    if (!mainWindow) return;
+
+    if (isQuitting) {
+      const position = mainWindow.getPosition();
+      const size = mainWindow.getSize();
+
+      saveWindowState(
+        isDefined(position[0]),
+        isDefined(position[1]),
+        isDefined(size[0]),
+        isDefined(size[1]),
+      );
+      return;
+    }
 
     e.preventDefault();
-    mainWindow?.hide();
+    mainWindow.hide();
   });
 
   mainWindow.on("closed", () => {

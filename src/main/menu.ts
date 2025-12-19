@@ -1,6 +1,7 @@
 import { Menu, shell, type MenuItemConstructorOptions } from "electron";
+import { isDev } from "./config";
 
-export const createMenu = ({ isDev }: { isDev: boolean }) => {
+export const createMenu = () => {
   const fileMenu: MenuItemConstructorOptions = {
     label: "File",
     submenu: [{ role: "quit" }],

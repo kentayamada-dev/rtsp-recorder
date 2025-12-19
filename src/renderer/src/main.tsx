@@ -6,6 +6,22 @@ import CssBaseline from "@mui/material/CssBaseline";
 import "@fontsource/inter/500.css";
 
 const darkTheme = createTheme({
+  components: {
+    MuiFormControlLabel: {
+      styleOverrides: {
+        root: {
+          margin: 0,
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          background: "#1e2227",
+        },
+      },
+    },
+  },
   typography: {
     fontFamily: "Inter",
   },

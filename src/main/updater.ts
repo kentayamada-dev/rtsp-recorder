@@ -38,7 +38,8 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
       });
   });
 
-  autoUpdater.on("error", () => {
+  autoUpdater.on("error", (error) => {
+    logger.error("Auto-update error:", error);
     dialog.showErrorBox(
       "Update Error",
       "Something went wrong while updating the app. Please try again later.",

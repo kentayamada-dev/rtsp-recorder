@@ -6,7 +6,8 @@
     "types": ["electron-vite/node"],
     "baseUrl": ".",
     "paths": {
-      "@ipc-channel-types": ["src/types/ipc.d.ts"]
+      "@ipc-channel-types": ["src/types/ipc.d.ts"],
+      "@main/*": ["src/main/*"]
     },
 
     // Interop Constraints

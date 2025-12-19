@@ -1,4 +1,5 @@
 import { Configuration } from "electron-builder";
+import ffmpegStatic from "ffmpeg-static";
 
 const transformString = (str: string, mode: "replace" | "remove") => {
   if (mode === "remove") {
@@ -25,7 +26,13 @@ export default {
   productName,
   appId: `com.${companyName}.${transformString(productName, "replace")}`,
   npmRebuild: false,
-  asarUnpack: "resources/**",
+  asarUnpack: ["resources/**"],
+  extraResources: [
+    {
+      from: `${ffmpegStatic}`,
+      to: "./",
+    },
+  ],
   directories: {
     buildResources: "build",
   },

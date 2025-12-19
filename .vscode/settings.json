@@ -1,0 +1,14 @@
+{
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.preferences.importModuleSpecifier": "shortest",
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.useAliasesForRenames": false,
+  "typescript.preferences.jsxAttributeCompletionStyle": "none",
+  "material-icon-theme.activeIconPack": "react",
+  "prettier.requireConfig": true,
+  "editor.colorDecorators": false,
+  "editor.quickSuggestions": {
+    "strings": "on"
+  }
+}
