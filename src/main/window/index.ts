@@ -4,7 +4,7 @@ import type { MainWindow } from "./type";
 import { getEnv, isDefined } from "@main/utils";
 import { getIsQuitting } from "@main/state";
 import { isDev } from "@main/config";
-import { getWindowState, saveWindowState } from "@main/store";
+import { store } from "@main/store";
 import { setupAutoUpdater } from "@main/updater";
 
 let mainWindow: MainWindow = null;
@@ -14,15 +14,14 @@ const getMainWindow = (): MainWindow => {
 };
 
 const createMainWindow = (): void => {
-  const windowState = getWindowState();
+  const window = store.get("window");
 
   mainWindow = new BrowserWindow({
-    ...(windowState
+    ...(window
       ? {
-          x: windowState.x,
-          y: windowState.y,
-          width: windowState.width,
-          height: windowState.height,
+          ...Object.fromEntries(
+            Object.entries(window).filter(([, value]) => value !== undefined),
+          ),
         }
       : {
           center: true,
@@ -30,6 +29,7 @@ const createMainWindow = (): void => {
           height: 700,
         }),
     show: false,
+    backgroundColor: "#23272e",
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
@@ -45,12 +45,12 @@ const createMainWindow = (): void => {
       const position = mainWindow.getPosition();
       const size = mainWindow.getSize();
 
-      saveWindowState(
-        isDefined(position[0]),
-        isDefined(position[1]),
-        isDefined(size[0]),
-        isDefined(size[1]),
-      );
+      store.set("window", {
+        x: isDefined(position[0]),
+        y: isDefined(position[1]),
+        width: isDefined(size[0]),
+        height: isDefined(size[1]),
+      });
       return;
     }
 
@@ -72,7 +72,7 @@ const createMainWindow = (): void => {
     setTimeout(() => {
       if (!mainWindow) return;
       setupAutoUpdater(mainWindow);
-    }, 5000);
+    }, 3000);
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Typography, Box, Tab, Paper } from "@mui/material";
 import {
   TabContext,
@@ -29,10 +29,37 @@ const CustomTabPanel = styled(TabPanel)<TabPanelProps>(() => ({
 
 export const App = () => {
   const [tabValue, setTabValue] = useState(TABS.RECORD.value);
+  const [saveSetting, setSaveSetting] = useState(false);
+  const isHydratedRef = useRef(false);
 
   const handleTabChange: TabListProps["onChange"] = (_event, newValue) => {
     setTabValue(newValue);
   };
+
+  const toggleSaveSetting = () => {
+    setSaveSetting((prevState) => !prevState);
+  };
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchData = async () => {
+      const isAutoSave = await window.api.invoke("getFormAutoSave");
+      if (isAutoSave !== undefined) {
+        setSaveSetting(isAutoSave);
+      }
+      isHydratedRef.current = true;
+    };
+
+    fetchData();
+
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!isHydratedRef.current) return;
+    window.api.invoke("saveFormAutoSave", saveSetting);
+  }, [saveSetting]);
 
   return (
     <>
@@ -72,10 +99,13 @@ export const App = () => {
               </TabList>
             </Box>
             <CustomTabPanel value={TABS.RECORD.value} keepMounted>
-              <RecordForm />
+              <RecordForm saveSetting={saveSetting} />
             </CustomTabPanel>
             <CustomTabPanel value={TABS.SETTINGS.value} keepMounted>
-              <SettingsPanel />
+              <SettingsPanel
+                toggleSaveSetting={toggleSaveSetting}
+                saveSetting={saveSetting}
+              />
             </CustomTabPanel>
           </TabContext>
         </Paper>

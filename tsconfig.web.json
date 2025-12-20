@@ -6,7 +6,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@renderer/*": ["src/renderer/src/*"]
+      "@renderer/*": ["src/renderer/src/*"],
+      "@shared-types/*": ["src/types/*"]
     },
 
     // Interop Constraints
@@ -31,5 +32,9 @@
     // Projects
     "incremental": true
   },
-  "include": ["src/renderer/**/*", "src/types/global.d.ts"]
+  "include": [
+    "src/renderer/**/*",
+    "src/types/global.d.ts",
+    "src/types/form.d.ts"
+  ]
 }

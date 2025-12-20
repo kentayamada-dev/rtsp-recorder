@@ -2,43 +2,48 @@ import {
   TextField,
   Grid,
   Button,
-  Checkbox,
-  FormControlLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  type ButtonProps,
 } from "@mui/material";
-import { boolean, object, string } from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { object, union, string, literal } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
-import { useState } from "react";
-
-type FormValues = {
-  rtspUrl: string;
-  outputFolder: string;
-  captureInterval: string;
-  autoUpload: boolean;
-  uploadInterval: string;
-};
+import { useEffect, useState } from "react";
+import type { FormValues } from "@shared-types/form";
 
 const formSchema = object({
-  rtspUrl: string()
-    .required("RTSP URL is required")
-    .matches(/^rtsp:\/\/.+[a-zA-Z0-9/]$/, "Must be a valid RTSP URL"),
+  rtspUrl: string().regex(
+    /^rtsp:\/\/.+[a-zA-Z0-9/]$/,
+    "Must be a valid RTSP URL",
+  ),
   outputFolder: string()
-    .required("Output folder is required")
-    .test("valid-folder", "Invalid folder path", async (folderPath) => {
-      if (!folderPath) return false;
-      const isValid = await window.api.invoke("validateFolder", folderPath);
-      return isValid;
-    }),
-  captureInterval: string()
-    .required("Capture interval is required")
-    .matches(/^[1-9]\d*$/, "Capture interval must be a positive whole number"),
-  autoUpload: boolean().required("Auto upload is required"),
-  uploadInterval: string()
-    .required("Upload interval is required")
-    .matches(/^[1-9]\d*$/, "Upload interval must be a positive whole number"),
+    .min(1, "Output folder is required")
+    .refine(
+      async (folderPath) => {
+        const isValid = await window.api.invoke("validateFolder", folderPath);
+        return isValid;
+      },
+      { message: "Invalid folder path" },
+    ),
+  captureInterval: string().regex(
+    /^[1-9]\d*$/,
+    "Capture interval must be a positive whole number",
+  ),
+  autoUpload: union([literal("yes"), literal("no")]),
+  uploadInterval: string().regex(
+    /^[1-9]\d*$/,
+    "Upload interval must be a positive whole number",
+  ),
 });
 
-export const RecordForm = () => {
+type RecordFormProps = {
+  saveSetting: boolean;
+};
+
+export const RecordForm = ({ saveSetting }: RecordFormProps) => {
   const [isRecording, setIsRecording] = useState(false);
 
   const {
@@ -50,33 +55,41 @@ export const RecordForm = () => {
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: {
-      autoUpload: true,
+      autoUpload: "yes",
       captureInterval: "",
       rtspUrl: "",
       outputFolder: "",
       uploadInterval: "",
     },
-    resolver: yupResolver(formSchema),
+    resolver: zodResolver(formSchema),
   });
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     if (isRecording) {
-      await window.api.invoke("stopCapture");
+      window.api.invoke("stopCapture");
       setIsRecording(false);
       return;
     }
 
     setIsRecording(true);
     const captureInterval = parseInt(data.captureInterval, 10);
-    await window.api.invoke(
-      "startCapture",
-      data.rtspUrl,
-      data.outputFolder,
-      captureInterval,
-    );
+    const uploadInterval = parseInt(data.uploadInterval, 10);
+    const { rtspUrl, outputFolder, autoUpload } = data;
+
+    window.api.invoke("startCapture", rtspUrl, outputFolder, captureInterval);
+
+    if (saveSetting) {
+      window.api.invoke("saveForm", {
+        autoUpload,
+        captureInterval,
+        outputFolder,
+        rtspUrl,
+        uploadInterval,
+      });
+    }
   };
 
-  const handleSelectFolder = async () => {
+  const handleSelectFolder: ButtonProps["onClick"] = async () => {
     try {
       const selectedFolder = await window.api.invoke("selectFolder");
       setValue("outputFolder", selectedFolder, {
@@ -89,6 +102,34 @@ export const RecordForm = () => {
   const captureIntervalErrorMessage = errors.captureInterval?.message;
   const outputFolderErrorMessage = errors.outputFolder?.message;
   const uploadIntervalErrorMessage = errors.uploadInterval?.message;
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchData = async () => {
+      const savedFormState = await window.api.invoke("getForm");
+      if (!savedFormState) return;
+
+      const setIfDefined = (field: keyof FormValues, value: any) => {
+        if (value !== undefined && value !== null && value !== "") {
+          setValue(field, value);
+        }
+      };
+
+      setIfDefined("rtspUrl", savedFormState.rtspUrl);
+      setIfDefined("outputFolder", savedFormState.outputFolder);
+      setIfDefined(
+        "captureInterval",
+        savedFormState.captureInterval?.toString(),
+      );
+      setIfDefined("uploadInterval", savedFormState.uploadInterval?.toString());
+      setIfDefined("autoUpload", savedFormState.autoUpload);
+    };
+
+    fetchData();
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -107,6 +148,7 @@ export const RecordForm = () => {
                     helperText={rtspUrlErrorMessage || " "}
                     label="URL"
                     fullWidth
+                    required
                     slotProps={{
                       input: {
                         readOnly: isRecording,
@@ -129,6 +171,7 @@ export const RecordForm = () => {
                     label="Capture Interval (sec)"
                     placeholder="60"
                     fullWidth
+                    required
                     slotProps={{
                       input: {
                         readOnly: isRecording,
@@ -150,6 +193,7 @@ export const RecordForm = () => {
                     placeholder="C:\\Users\\Documents"
                     variant="standard"
                     fullWidth
+                    required
                     label="Output Folder"
                     slotProps={{
                       input: {
@@ -183,6 +227,7 @@ export const RecordForm = () => {
                     label="Upload Interval (h)"
                     placeholder="24"
                     fullWidth
+                    required
                     slotProps={{
                       input: {
                         readOnly: isRecording,
@@ -204,23 +249,18 @@ export const RecordForm = () => {
               <Controller
                 control={control}
                 name="autoUpload"
-                render={({ field: { onChange, value } }) => (
-                  <FormControlLabel
-                    sx={{
-                      "& .MuiFormControlLabel-label": {
-                        fontSize: "1.2rem",
-                      },
-                    }}
-                    control={
-                      <Checkbox
-                        size="large"
-                        checked={value}
-                        onChange={onChange}
-                        disabled={isRecording}
-                      />
-                    }
-                    label="Auto Upload"
-                  />
+                render={({ field }) => (
+                  <FormControl fullWidth variant="standard">
+                    <InputLabel>Auto Upload</InputLabel>
+                    <Select
+                      disabled={isRecording}
+                      label="Auto Upload"
+                      {...field}
+                    >
+                      <MenuItem value="yes">Yes</MenuItem>
+                      <MenuItem value="no">No</MenuItem>
+                    </Select>
+                  </FormControl>
                 )}
               />
             </Grid>

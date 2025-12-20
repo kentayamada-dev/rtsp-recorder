@@ -1,26 +1,42 @@
-import log from "electron-log/main";
+import { existsSync, mkdirSync, appendFileSync } from "node:fs";
 import { join } from "node:path";
+import { app } from "electron";
 
-log.initialize();
+type LogLevel = "info" | "error";
 
-const commonFormat = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}";
+const createLogger = () => {
+  const logsBaseDir = join(app.getPath("userData"), "logs");
 
-log.transports.file.level = "info";
-log.transports.file.format = commonFormat;
+  if (!existsSync(logsBaseDir)) {
+    mkdirSync(logsBaseDir, { recursive: true });
+  }
 
-log.transports.file.resolvePathFn = (variables, message) => {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const getLogFilePath = (logLevel: LogLevel): string => {
+    const today = new Date().toISOString().split("T")[0] || "";
+    const datePath = join(logsBaseDir, today);
 
-  const dateFolder = `${year}-${month}-${day}`;
-  const level = message?.level || "info";
+    if (!existsSync(datePath)) {
+      mkdirSync(datePath, { recursive: true });
+    }
 
-  return join(variables.libraryDefaultDir, dateFolder, `${level}.log`);
+    return join(datePath, `${logLevel}.log`);
+  };
+
+  const write = (logLevel: LogLevel, message: string, args: any[]) => {
+    const timestamp = new Date().toISOString();
+    const formatted = `[${timestamp}] [${logLevel.toUpperCase()}] ${message}${
+      args.length > 0 ? ` ${JSON.stringify(args)}` : ""
+    }`;
+    appendFileSync(getLogFilePath(logLevel), formatted + "\n", "utf-8");
+  };
+
+  return {
+    info: (message: string, ...args: any[]) => write("info", message, args),
+    error: (message: string, ...args: any[]) => write("error", message, args),
+  } as const satisfies Record<
+    LogLevel,
+    (message: string, ...args: any[]) => void
+  >;
 };
 
-log.transports.console.level = "info";
-log.transports.console.format = commonFormat;
-
-export const logger = log;
+export const logger = createLogger();
