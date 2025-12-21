@@ -1,5 +1,5 @@
 import { BrowserWindow, dialog, ipcMain } from "electron";
-import { existsSync } from "node:fs";
+import { access } from "node:fs/promises";
 import { isDefined } from "@main/utils";
 import type { CaptureInterval, IpcHandlers } from "./type";
 import { captureFrame } from "@main/ffmpeg";
@@ -11,14 +11,23 @@ let captureInterval: CaptureInterval = null;
 const handlers = {
   selectFolder: async () => {
     const mainWindow = BrowserWindow.getFocusedWindow();
-    const result = await dialog.showOpenDialog(isDefined(mainWindow), {
-      properties: ["openDirectory"],
-    });
-    return isDefined(result.filePaths[0]);
+    try {
+      const result = await dialog.showOpenDialog(isDefined(mainWindow), {
+        properties: ["openDirectory"],
+      });
+      return isDefined(result.filePaths[0]);
+    } catch (err) {
+      return null;
+    }
   },
 
-  validateFolder: (_event, folderPath) => {
-    return existsSync(folderPath);
+  validateFolder: async (_event, folderPath) => {
+    try {
+      await access(folderPath);
+      return true;
+    } catch (error) {
+      return false;
+    }
   },
 
   startCapture: (_event, rtspUrl, folderPath, interval) => {
@@ -32,18 +41,18 @@ const handlers = {
     }
   },
 
-  getForm: () => {
-    const formValues = store.get("form.values");
+  getForm: async () => {
+    const formValues = await store.get("form.values");
 
     return formValues;
   },
 
-  saveForm: (_event, formData) => {
-    store.set("form.values", formData);
+  saveForm: async (_event, formData) => {
+    await store.set("form.values", formData);
   },
 
-  resetFormValues: () => {
-    store.delete("form.values");
+  resetFormValues: async () => {
+    await store.delete("form.values");
   },
 
   showQuestionMessage: async (_event, title, message) => {
@@ -57,14 +66,14 @@ const handlers = {
     return result.response === 1;
   },
 
-  getFormAutoSave() {
-    const autoSave = store.get("form.autoSave");
+  getFormAutoSave: async () => {
+    const autoSave = await store.get("form.autoSave");
 
     return autoSave;
   },
 
-  saveFormAutoSave(_event, autoSave) {
-    store.set("form.autoSave", autoSave);
+  saveFormAutoSave: async (_event, autoSave) => {
+    await store.set("form.autoSave", autoSave);
   },
 } as const satisfies IpcHandlers;
 

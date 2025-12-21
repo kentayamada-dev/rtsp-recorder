@@ -3,11 +3,11 @@ import type { FormStore } from "./form";
 export type IPCChannels = {
   selectFolder: {
     params: [];
-    return: Promise<string>;
+    return: Promise<string | null>;
   };
   validateFolder: {
     params: [folderPath: string];
-    return: boolean;
+    return: Promise<boolean>;
   };
   startCapture: {
     params: [rtspUrl: string, folderPath: string, interval: number];
@@ -19,7 +19,7 @@ export type IPCChannels = {
   };
   getForm: {
     params: [];
-    return: Partial<FormStore["values"]> | undefined;
+    return: Promise<Partial<FormStore["values"]> | undefined>;
   };
   saveForm: {
     params: [FormStore["values"]];
@@ -31,7 +31,7 @@ export type IPCChannels = {
   };
   getFormAutoSave: {
     params: [];
-    return: FormStore["autoSave"] | undefined;
+    return: Promise<FormStore["autoSave"] | undefined>;
   };
   saveFormAutoSave: {
     params: [autoSave: FormStore["autoSave"]];

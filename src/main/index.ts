@@ -13,7 +13,7 @@ app.on("before-quit", () => {
   setIsQuitting(true);
 });
 
-app.on("second-instance", (_event) => {
+app.on("second-instance", () => {
   const mainWindow = getMainWindow();
 
   if (!mainWindow) return;
@@ -26,13 +26,16 @@ app.on("second-instance", (_event) => {
   mainWindow.focus();
 });
 
-app.whenReady().then(() => {
-  setupIpc();
-  createMainWindow();
-  createMenu();
-  createTray();
-});
-
 app.on("window-all-closed", () => {
   app.quit();
 });
+
+const initializeApp = async () => {
+  await app.whenReady();
+  setupIpc();
+  await createMainWindow();
+  createMenu();
+  createTray();
+};
+
+initializeApp();

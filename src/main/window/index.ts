@@ -13,8 +13,8 @@ const getMainWindow = (): MainWindow => {
   return mainWindow;
 };
 
-const createMainWindow = (): void => {
-  const window = store.get("window");
+const createMainWindow = async (): Promise<void> => {
+  const window = await store.get("window");
 
   mainWindow = new BrowserWindow({
     ...(window
@@ -37,7 +37,7 @@ const createMainWindow = (): void => {
     },
   });
 
-  mainWindow.on("close", (e) => {
+  mainWindow.on("close", async (e) => {
     const isQuitting = getIsQuitting();
     if (!mainWindow) return;
 
@@ -45,7 +45,7 @@ const createMainWindow = (): void => {
       const position = mainWindow.getPosition();
       const size = mainWindow.getSize();
 
-      store.set("window", {
+      await store.set("window", {
         x: isDefined(position[0]),
         y: isDefined(position[1]),
         width: isDefined(size[0]),

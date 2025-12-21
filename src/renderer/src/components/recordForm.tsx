@@ -7,6 +7,7 @@ import {
   Select,
   MenuItem,
   type ButtonProps,
+  FormHelperText,
 } from "@mui/material";
 import { object, union, string, literal } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,12 +31,12 @@ const formSchema = object({
     ),
   captureInterval: string().regex(
     /^[1-9]\d*$/,
-    "Capture interval must be a positive whole number",
+    "Must be a positive whole number",
   ),
   autoUpload: union([literal("yes"), literal("no")]),
   uploadInterval: string().regex(
     /^[1-9]\d*$/,
-    "Upload interval must be a positive whole number",
+    "Must be a positive whole number",
   ),
 });
 
@@ -90,18 +91,19 @@ export const RecordForm = ({ saveSetting }: RecordFormProps) => {
   };
 
   const handleSelectFolder: ButtonProps["onClick"] = async () => {
-    try {
-      const selectedFolder = await window.api.invoke("selectFolder");
+    const selectedFolder = await window.api.invoke("selectFolder");
+    if (selectedFolder) {
       setValue("outputFolder", selectedFolder, {
         shouldValidate: true,
       });
-    } catch (error) {}
+    }
   };
 
   const rtspUrlErrorMessage = errors.rtspUrl?.message;
   const captureIntervalErrorMessage = errors.captureInterval?.message;
   const outputFolderErrorMessage = errors.outputFolder?.message;
   const uploadIntervalErrorMessage = errors.uploadInterval?.message;
+  const autoUploadErrorMessage = errors.autoUpload?.message;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -250,16 +252,26 @@ export const RecordForm = ({ saveSetting }: RecordFormProps) => {
                 control={control}
                 name="autoUpload"
                 render={({ field }) => (
-                  <FormControl fullWidth variant="standard">
-                    <InputLabel>Auto Upload</InputLabel>
+                  <FormControl
+                    fullWidth
+                    variant="standard"
+                    error={Boolean(autoUploadErrorMessage)}
+                  >
+                    <InputLabel id="demo-simple-select-error-label">
+                      Auto Upload
+                    </InputLabel>
                     <Select
-                      disabled={isRecording}
+                      labelId="demo-simple-select-error-label"
                       label="Auto Upload"
+                      inputProps={{ readOnly: isRecording }}
                       {...field}
                     >
                       <MenuItem value="yes">Yes</MenuItem>
                       <MenuItem value="no">No</MenuItem>
                     </Select>
+                    <FormHelperText>
+                      {autoUploadErrorMessage || " "}
+                    </FormHelperText>
                   </FormControl>
                 )}
               />

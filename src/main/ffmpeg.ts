@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { existsSync, mkdirSync } from "node:fs";
+import { mkdir } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { isDev } from "./config";
 import { app } from "electron";
@@ -33,15 +33,13 @@ export const captureFrame = (
   folderPath: string,
   interval: number,
 ) => {
-  return setInterval(() => {
+  return setInterval(async () => {
     const { dateFolder, hourFolder, filename } = formatDate(new Date());
 
     const hourDir = join(join(folderPath, dateFolder), hourFolder);
     const filepath = join(hourDir, filename);
 
-    if (!existsSync(hourDir)) {
-      mkdirSync(hourDir, { recursive: true });
-    }
+    await mkdir(hourDir, { recursive: true });
 
     const ffmpeg = spawn(ffmpegExePath, [
       "-rtsp_transport",
