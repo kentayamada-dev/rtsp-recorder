@@ -58,7 +58,7 @@ export const App = () => {
 
   useEffect(() => {
     if (!isHydratedRef.current) return;
-    window.api.invoke("saveFormAutoSave", saveSetting);
+    window.api.send("saveFormAutoSave", saveSetting);
   }, [saveSetting]);
 
   return (

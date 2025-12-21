@@ -67,7 +67,8 @@ export const RecordForm = ({ saveSetting }: RecordFormProps) => {
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     if (isRecording) {
-      window.api.invoke("stopCapture");
+      window.api.send("stopCapture");
+
       setIsRecording(false);
       return;
     }
@@ -77,10 +78,10 @@ export const RecordForm = ({ saveSetting }: RecordFormProps) => {
     const uploadInterval = parseInt(data.uploadInterval, 10);
     const { rtspUrl, outputFolder, autoUpload } = data;
 
-    window.api.invoke("startCapture", rtspUrl, outputFolder, captureInterval);
+    window.api.send("startCapture", rtspUrl, outputFolder, captureInterval);
 
     if (saveSetting) {
-      window.api.invoke("saveForm", {
+      window.api.send("saveForm", {
         autoUpload,
         captureInterval,
         outputFolder,

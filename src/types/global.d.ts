@@ -1,11 +1,4 @@
-import type { IPCChannels } from "./ipc";
-
-type Api = {
-  invoke: <K extends keyof IPCChannels>(
-    channel: K,
-    ...args: IPCChannels[K]["params"]
-  ) => Promise<IPCChannels[K]["return"]>;
-};
+import type { Api } from "./ipc";
 
 declare global {
   interface Window {

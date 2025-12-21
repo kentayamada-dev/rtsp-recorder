@@ -29,7 +29,7 @@ export const SettingsPanel = ({
 
     if (!confirmed) return;
 
-    window.api.invoke("resetFormValues");
+    window.api.send("resetFormValues");
   };
 
   return (

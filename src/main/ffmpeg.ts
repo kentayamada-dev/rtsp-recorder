@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { isDev } from "./config";
 import { app } from "electron";
 import { logger } from "./log";
+import { sendEvent } from "./ipc";
 
 const FFMPEG_EXE_FILE = "ffmpeg.exe";
 
@@ -56,6 +57,7 @@ export const captureFrame = (
     ffmpeg.on("close", (code) => {
       if (code === 0) {
         logger.info(`Captured: ${filename}`);
+        sendEvent("getLog", `Captured: ${filename}`, "info");
       }
     });
   }, interval * 1000);

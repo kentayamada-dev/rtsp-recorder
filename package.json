@@ -1,6 +1,6 @@
 {
   "name": "rtsp-recorder",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "out/main/index.js",
   "author": {
     "name": "Kenta Yamada"
@@ -32,6 +32,7 @@
     "@emotion/styled": "11.14.1",
     "@fontsource/inter": "5.2.8",
     "@hookform/resolvers": "5.2.2",
+    "@melloware/react-logviewer": "6.3.4",
     "@mui/lab": "7.0.1-beta.20",
     "@mui/material": "7.3.6",
     "@types/node": "25.0.2",
