@@ -42,7 +42,7 @@ type Api = {
   on: <K extends keyof IPCEvents>(
     channel: K,
     listener: (...args: IPCEvents[K]) => void,
-  ) => (() => void);
+  ) => () => void;
   once: <K extends keyof IPCEvents>(
     channel: K,
     listener: (...args: IPCEvents[K]) => void,

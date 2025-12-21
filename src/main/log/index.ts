@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { app } from "electron";
 import { isDefined } from "@main/utils";
 import type { LoggerOptions } from "./type";
-import type { LogLevel } from '@shared-types/ipc';
+import type { LogLevel } from "@shared-types/ipc";
 
 const FOLDER_NAME = "Logs";
 

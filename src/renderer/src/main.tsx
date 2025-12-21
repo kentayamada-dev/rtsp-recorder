@@ -4,6 +4,7 @@ import { App } from "@renderer/app";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import "@fontsource/inter/500.css";
+import "./assets/main.css";
 
 const darkTheme = createTheme({
   components: {
