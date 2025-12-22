@@ -42,20 +42,24 @@ const formSchema = object({
 
 type RecordFormProps = {
   saveSetting: boolean;
-  deleteForm: boolean;
+  clearForm: boolean;
+  handleClearForm: (fn: () => void) => void;
 };
 
 const DEFAUTL_CAPTURE_INTERVAL = 60;
 const DEFAUTL_UPLOAD_INTERVAL = 24;
 
-export const RecordForm = ({ saveSetting, deleteForm }: RecordFormProps) => {
+export const RecordForm = ({
+  saveSetting,
+  clearForm,
+  handleClearForm,
+}: RecordFormProps) => {
   const [isRecording, setIsRecording] = useState(false);
 
   const {
     control,
     handleSubmit,
     setValue,
-    getValues,
     reset,
     formState: { errors },
   } = useForm<FormValues>({
@@ -141,29 +145,8 @@ export const RecordForm = ({ saveSetting, deleteForm }: RecordFormProps) => {
   }, []);
 
   useEffect(() => {
-    if (deleteForm) {
-      reset();
-    } else {
-      const {
-        autoUpload,
-        captureInterval,
-        outputFolder,
-        rtspUrl,
-        uploadInterval,
-      } = getValues();
-      window.api.send("saveForm", {
-        autoUpload,
-        captureInterval: captureInterval
-          ? Number(captureInterval)
-          : DEFAUTL_CAPTURE_INTERVAL,
-        outputFolder,
-        rtspUrl,
-        uploadInterval: uploadInterval
-          ? Number(uploadInterval)
-          : DEFAUTL_UPLOAD_INTERVAL,
-      });
-    }
-  }, [deleteForm]);
+    handleClearForm(reset);
+  }, [clearForm]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>

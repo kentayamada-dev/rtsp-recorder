@@ -30,7 +30,7 @@ const CustomTabPanel = styled(TabPanel)<TabPanelProps>(() => ({
 export const App = () => {
   const [tabValue, setTabValue] = useState(TABS.RECORD.value);
   const [saveSetting, setSaveSetting] = useState(false);
-  const [deleteForm, setDeleteForm] = useState(false);
+  const [clearForm, setClearForm] = useState<boolean>(false);
   const isHydratedRef = useRef(false);
 
   const handleTabChange: TabListProps["onChange"] = (_event, newValue) => {
@@ -41,8 +41,15 @@ export const App = () => {
     setSaveSetting((prevState) => !prevState);
   };
 
+  const handleClearForm = (fn: () => void) => {
+    if (clearForm === true) {
+      fn();
+    }
+    setClearForm(false);
+  };
+
   const handleDeleteForm: ButtonProps["onClick"] = async () => {
-    setDeleteForm(true);
+    setClearForm(true);
     const confirmed = await window.api.invoke(
       "showQuestionMessage",
       "Confirm Delete",
@@ -113,7 +120,11 @@ export const App = () => {
               </TabList>
             </Box>
             <CustomTabPanel value={TABS.RECORD.value} keepMounted>
-              <RecordForm saveSetting={saveSetting} deleteForm={deleteForm} />
+              <RecordForm
+                saveSetting={saveSetting}
+                clearForm={clearForm}
+                handleClearForm={handleClearForm}
+              />
             </CustomTabPanel>
             <CustomTabPanel value={TABS.SETTINGS.value} keepMounted>
               <SettingsPanel
