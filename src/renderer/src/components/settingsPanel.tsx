@@ -10,26 +10,16 @@ import {
 type SettingsPanelProps = {
   toggleSaveSetting: () => void;
   saveSetting: boolean;
+  handleDeleteForm: ButtonProps["onClick"];
 };
 
 export const SettingsPanel = ({
   saveSetting,
   toggleSaveSetting,
+  handleDeleteForm,
 }: SettingsPanelProps) => {
   const handleChange: SwitchProps["onChange"] = () => {
     toggleSaveSetting();
-  };
-
-  const handleDelete: ButtonProps["onClick"] = async () => {
-    const confirmed = await window.api.invoke(
-      "showQuestionMessage",
-      "Confirm Delete",
-      "Are you sure you want to delete?",
-    );
-
-    if (!confirmed) return;
-
-    window.api.send("resetFormValues");
   };
 
   return (
@@ -41,7 +31,7 @@ export const SettingsPanel = ({
       <Button
         variant="outlined"
         color="error"
-        onClick={handleDelete}
+        onClick={handleDeleteForm}
         sx={{
           width: "fit-content",
         }}

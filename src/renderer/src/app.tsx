@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Typography, Box, Tab, Paper } from "@mui/material";
+import { Typography, Box, Tab, Paper, type ButtonProps } from "@mui/material";
 import {
   TabContext,
   TabList,
@@ -30,6 +30,7 @@ const CustomTabPanel = styled(TabPanel)<TabPanelProps>(() => ({
 export const App = () => {
   const [tabValue, setTabValue] = useState(TABS.RECORD.value);
   const [saveSetting, setSaveSetting] = useState(false);
+  const [deleteForm, setDeleteForm] = useState(false);
   const isHydratedRef = useRef(false);
 
   const handleTabChange: TabListProps["onChange"] = (_event, newValue) => {
@@ -38,6 +39,19 @@ export const App = () => {
 
   const toggleSaveSetting = () => {
     setSaveSetting((prevState) => !prevState);
+  };
+
+  const handleDeleteForm: ButtonProps["onClick"] = async () => {
+    setDeleteForm(true);
+    const confirmed = await window.api.invoke(
+      "showQuestionMessage",
+      "Confirm Delete",
+      "Are you sure you want to delete?",
+    );
+
+    if (!confirmed) return;
+
+    window.api.send("resetFormValues");
   };
 
   useEffect(() => {
@@ -99,12 +113,13 @@ export const App = () => {
               </TabList>
             </Box>
             <CustomTabPanel value={TABS.RECORD.value} keepMounted>
-              <RecordForm saveSetting={saveSetting} />
+              <RecordForm saveSetting={saveSetting} deleteForm={deleteForm} />
             </CustomTabPanel>
             <CustomTabPanel value={TABS.SETTINGS.value} keepMounted>
               <SettingsPanel
                 toggleSaveSetting={toggleSaveSetting}
                 saveSetting={saveSetting}
+                handleDeleteForm={handleDeleteForm}
               />
             </CustomTabPanel>
           </TabContext>

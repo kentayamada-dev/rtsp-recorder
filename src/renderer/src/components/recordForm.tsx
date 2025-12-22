@@ -42,25 +42,31 @@ const formSchema = object({
 
 type RecordFormProps = {
   saveSetting: boolean;
+  deleteForm: boolean;
 };
 
-export const RecordForm = ({ saveSetting }: RecordFormProps) => {
+const DEFAUTL_CAPTURE_INTERVAL = 60;
+const DEFAUTL_UPLOAD_INTERVAL = 24;
+
+export const RecordForm = ({ saveSetting, deleteForm }: RecordFormProps) => {
   const [isRecording, setIsRecording] = useState(false);
 
   const {
     control,
     handleSubmit,
     setValue,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<FormValues>({
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: {
       autoUpload: "yes",
-      captureInterval: "",
+      captureInterval: `${DEFAUTL_CAPTURE_INTERVAL}`,
       rtspUrl: "",
       outputFolder: "",
-      uploadInterval: "",
+      uploadInterval: `${DEFAUTL_UPLOAD_INTERVAL}`,
     },
     resolver: zodResolver(formSchema),
   });
@@ -74,8 +80,8 @@ export const RecordForm = ({ saveSetting }: RecordFormProps) => {
     }
 
     setIsRecording(true);
-    const captureInterval = parseInt(data.captureInterval, 10);
-    const uploadInterval = parseInt(data.uploadInterval, 10);
+    const captureInterval = Number(data.captureInterval);
+    const uploadInterval = Number(data.uploadInterval);
     const { rtspUrl, outputFolder, autoUpload } = data;
 
     window.api.send("startCapture", rtspUrl, outputFolder, captureInterval);
@@ -133,6 +139,31 @@ export const RecordForm = ({ saveSetting }: RecordFormProps) => {
 
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    if (deleteForm) {
+      reset();
+    } else {
+      const {
+        autoUpload,
+        captureInterval,
+        outputFolder,
+        rtspUrl,
+        uploadInterval,
+      } = getValues();
+      window.api.send("saveForm", {
+        autoUpload,
+        captureInterval: captureInterval
+          ? Number(captureInterval)
+          : DEFAUTL_CAPTURE_INTERVAL,
+        outputFolder,
+        rtspUrl,
+        uploadInterval: uploadInterval
+          ? Number(uploadInterval)
+          : DEFAUTL_UPLOAD_INTERVAL,
+      });
+    }
+  }, [deleteForm]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -255,6 +286,7 @@ export const RecordForm = ({ saveSetting }: RecordFormProps) => {
                 render={({ field }) => (
                   <FormControl
                     fullWidth
+                    required
                     variant="standard"
                     error={Boolean(autoUploadErrorMessage)}
                   >

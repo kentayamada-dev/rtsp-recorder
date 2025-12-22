@@ -29,7 +29,11 @@ export const CustomToggleButton = <T extends string>({
   };
 
   return (
-    <Stack>
+    <Stack
+      sx={{
+        width: "100%",
+      }}
+    >
       <Typography variant="caption">{label}</Typography>
       <ToggleButtonGroup
         size="small"

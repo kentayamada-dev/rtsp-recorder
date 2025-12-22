@@ -1,5 +1,5 @@
 import { LazyLog } from "@melloware/react-logviewer";
-import { Grid, Stack, Box } from "@mui/material";
+import { Grid, Stack, Box, Button } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import type { LogLevel } from "@shared-types/ipc";
 import { CustomToggleButton } from "./customToggleButton";
@@ -41,6 +41,10 @@ export const LogPanel = () => {
     setAutoUpdate(newValue);
   };
 
+  const handleClearLog = () => {
+    logsRef[logType].current.clear();
+  };
+
   useEffect(() => {
     if (autoUpdate === "on") {
       unsubscribeRef.current = window.api.on("getLog", handleGetLog);
@@ -70,7 +74,15 @@ export const LogPanel = () => {
         ))}
       </Grid>
       <Grid size={2.5}>
-        <Stack spacing={2}>
+        <Stack
+          direction="column"
+          spacing={0}
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
           <CustomToggleButton
             label="Log Type"
             value={logType}
@@ -83,6 +95,14 @@ export const LogPanel = () => {
             options={Object.values(AUTOUPDATE_STATE)}
             onChange={handleAutoUpdateChange}
           />
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleClearLog}
+            fullWidth
+          >
+            Clear Log
+          </Button>
         </Stack>
       </Grid>
     </Grid>
