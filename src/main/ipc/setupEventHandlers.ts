@@ -39,10 +39,10 @@ export const setupEventHandlers = (sendEvent: SendEvent) => {
     "form:autosave": (_event, autoSave) => {
       store.set("form.autoSave", autoSave);
     },
-    "form:reocrd:reset": () => {
+    "form:capture:reset": () => {
       store.delete("captureForm.values");
     },
-    "form:reocrd:save": (_envet, formData) => {
+    "form:capture:save": (_envet, formData) => {
       store.set("captureForm.values", formData);
     },
     "form:upload:reset": () => {

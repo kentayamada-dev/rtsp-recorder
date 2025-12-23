@@ -76,10 +76,10 @@ type RendererToMainEvents = {
   "form:autosave": {
     payload: FormStore["autoSave"];
   };
-  "form:reocrd:save": {
+  "form:capture:save": {
     payload: CaptureFormStore["values"];
   };
-  "form:reocrd:reset": {
+  "form:capture:reset": {
     payload: void;
   };
   "form:upload:save": {

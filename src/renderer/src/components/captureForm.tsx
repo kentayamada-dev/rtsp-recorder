@@ -121,7 +121,7 @@ export const CaptureForm = ({
   useEffect(() => {
     if (autoSave) {
       const { captureInterval, outputFolder, rtspUrl } = getValues();
-      window.api.send("form:reocrd:save", {
+      window.api.send("form:capture:save", {
         captureInterval: captureInterval
           ? Number(captureInterval)
           : Number(initialDefaults.captureInterval),

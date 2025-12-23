@@ -78,7 +78,7 @@ export const App = () => {
 
     if (!confirmed) return;
 
-    window.api.send("form:reocrd:reset");
+    window.api.send("form:capture:reset");
     window.api.send("form:upload:reset");
   };
 
@@ -90,7 +90,7 @@ export const App = () => {
       interval: Number(data.captureInterval),
     });
     if (autoSave) {
-      window.api.send("form:reocrd:save", {
+      window.api.send("form:capture:save", {
         captureInterval: Number(data.captureInterval),
         outputFolder: data.outputFolder,
         rtspUrl: data.rtspUrl,
