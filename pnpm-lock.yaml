@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      electron-updater:
-        specifier: 6.6.2
-        version: 6.6.2
+      googleapis:
+        specifier: 169.0.0
+        version: 169.0.0
     devDependencies:
       '@electron-toolkit/tsconfig':
         specifier: 2.0.0
@@ -63,15 +63,15 @@ importers:
       electron-builder:
         specifier: 26.0.12
         version: 26.0.12(electron-builder-squirrel-windows@26.0.12)
+      electron-updater:
+        specifier: 6.6.2
+        version: 6.6.2
       electron-vite:
         specifier: 5.0.0
         version: 5.0.0(rolldown-vite@7.2.11(@types/node@25.0.2)(esbuild@0.25.12))
       ffmpeg-static:
         specifier: 5.3.0
         version: 5.3.0
-      googleapis:
-        specifier: 169.0.0
-        version: 169.0.0
       prettier:
         specifier: 3.7.4
         version: 3.7.4
