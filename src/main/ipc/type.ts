@@ -17,6 +17,6 @@ type IpcEventHandlers = {
   [K in keyof IPCEvents]: IpcEventHandler<K>;
 };
 
-type CaptureInterval = ReturnType<typeof setInterval> | null;
+type Interval = ReturnType<typeof setInterval> | null;
 
-export type { CaptureInterval, IpcHandlers, IpcEventHandlers };
+export type { Interval, IpcHandlers, IpcEventHandlers };

@@ -1,23 +1,37 @@
-import type { FormStore } from "./form";
+import type { FormStore, CaptureFormStore, UploadFormStore } from "./form";
 
 type LogLevel = "info" | "error";
+
+type MessageType = "upload" | "capture";
 
 type IPCChannels = {
   selectFolder: {
     params: [];
     return: Promise<string | null>;
   };
+  selectJsonFile: {
+    params: [];
+    return: Promise<string | null>;
+  };
+  getFormAutoSave: {
+    params: [];
+    return: Promise<boolean | undefined>;
+  };
   validateFolder: {
     params: [folderPath: string];
     return: Promise<boolean>;
   };
-  getForm: {
-    params: [];
-    return: Promise<Partial<FormStore["values"]> | undefined>;
+  validateJsonFile: {
+    params: [filePath: string];
+    return: Promise<boolean>;
   };
-  getFormAutoSave: {
+  getCaptureForm: {
     params: [];
-    return: Promise<FormStore["autoSave"] | undefined>;
+    return: Promise<Partial<CaptureFormStore["values"]> | undefined>;
+  };
+  getUploadForm: {
+    params: [];
+    return: Promise<Partial<UploadFormStore["values"]> | undefined>;
   };
   showQuestionMessage: {
     params: [title: string, message: string];
@@ -26,11 +40,22 @@ type IPCChannels = {
 };
 
 type IPCEvents = {
-  getLog: [log: string, level: LogLevel];
+  captureProgress: [progress: number];
+  uploadProgress: [progress: number];
+  getMessage: [message: string, type: MessageType];
   stopCapture: [];
+  stopUpload: [];
   startCapture: [rtspUrl: string, folderPath: string, interval: number];
-  saveForm: [FormStore["values"]];
-  resetFormValues: [];
+  startUpload: [
+    folderPath: string,
+    interval: number,
+    fps: number,
+    secretFilePath: string,
+  ];
+  saveRecordForm: [CaptureFormStore["values"]];
+  saveUploadForm: [UploadFormStore["values"]];
+  resetRecordForm: [];
+  resetUploadForm: [];
   saveFormAutoSave: [autoSave: FormStore["autoSave"]];
 };
 
@@ -54,4 +79,4 @@ type Api = {
   ) => void;
 };
 
-export type { IPCChannels, IPCEvents, LogLevel, Api };
+export type { IPCChannels, IPCEvents, LogLevel, Api, MessageType };

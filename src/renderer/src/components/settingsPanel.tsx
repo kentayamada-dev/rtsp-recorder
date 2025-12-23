@@ -8,25 +8,21 @@ import {
 } from "@mui/material";
 
 type SettingsPanelProps = {
-  toggleSaveSetting: () => void;
-  saveSetting: boolean;
+  handleOnChange: Exclude<SwitchProps["onChange"], undefined>;
+  autoSave: boolean;
   handleDeleteForm: ButtonProps["onClick"];
 };
 
 export const SettingsPanel = ({
-  saveSetting,
-  toggleSaveSetting,
+  autoSave,
+  handleOnChange,
   handleDeleteForm,
 }: SettingsPanelProps) => {
-  const handleChange: SwitchProps["onChange"] = () => {
-    toggleSaveSetting();
-  };
-
   return (
     <Stack spacing={5}>
       <FormControlLabel
-        control={<Switch checked={saveSetting} onChange={handleChange} />}
-        label="Save form data"
+        control={<Switch checked={autoSave} onChange={handleOnChange} />}
+        label="Auto save form data"
       />
       <Button
         variant="outlined"
@@ -36,7 +32,7 @@ export const SettingsPanel = ({
           width: "fit-content",
         }}
       >
-        Delete Form Data
+        Delete Saved Form Data
       </Button>
     </Stack>
   );

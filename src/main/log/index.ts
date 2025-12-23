@@ -16,7 +16,8 @@ const colors = {
 
 const pad = (n: number, len = 2) => String(n).padStart(len, "0");
 
-const formatIso8601WithOffset = (date = new Date()): string => {
+const formatIso8601WithOffset = (): string => {
+  const date = new Date();
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
   const day = pad(date.getDate());

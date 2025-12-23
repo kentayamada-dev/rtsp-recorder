@@ -1,53 +1,52 @@
 import { LazyLog } from "@melloware/react-logviewer";
 import { Grid, Stack, Box, Button } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
-import type { LogLevel } from "@shared-types/ipc";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import type { MessageType } from "@shared-types/ipc";
 import { CustomToggleButton } from "./customToggleButton";
 
 const AUTOUPDATE_STATE = {
   ON: "on",
   OFF: "off",
 } as const;
-const LOG_TYPES = ["info", "error"] as const satisfies LogLevel[];
-type LogType = (typeof LOG_TYPES)[number];
+const MESSAGE_TYPES = ["capture", "upload"] as const satisfies MessageType[];
 type AutoUpdateStateValue =
   (typeof AUTOUPDATE_STATE)[keyof typeof AUTOUPDATE_STATE];
 
-const useLogRefsMap = () => {
+const useMessageRefsMap = () => {
   const refs = Object.fromEntries(
-    LOG_TYPES.map((type) => [type, useRef<LazyLog | null>(null)]),
-  ) as Record<LogType, React.RefObject<LazyLog>>;
+    MESSAGE_TYPES.map((type) => [type, useRef<LazyLog | null>(null)]),
+  ) as Record<MessageType, RefObject<LazyLog>>;
 
   return refs;
 };
 
-export const LogPanel = () => {
-  const [logType, setLogType] = useState<LogType>("info");
+export const MessagePanel = () => {
+  const [messageType, setMessageType] = useState<MessageType>("capture");
   const [autoUpdate, setAutoUpdate] = useState<AutoUpdateStateValue>(
     AUTOUPDATE_STATE.ON,
   );
-  const logsRef = useLogRefsMap();
+  const messageRef = useMessageRefsMap();
   const unsubscribeRef = useRef<() => void>(() => {});
 
-  const handleGetLog = (log: string, level: LogType) => {
-    logsRef[level].current.appendLines([log]);
+  const handleGetLog = (log: string, level: MessageType) => {
+    messageRef[level].current.appendLines([log]);
   };
 
-  const handleLogTypeChange = (newType: LogType) => {
-    setLogType(newType);
+  const handleMessageTypeChange = (newType: MessageType) => {
+    setMessageType(newType);
   };
 
   const handleAutoUpdateChange = (newValue: AutoUpdateStateValue) => {
     setAutoUpdate(newValue);
   };
 
-  const handleClearLog = () => {
-    logsRef[logType].current.clear();
+  const handleClearMessages = () => {
+    messageRef[messageType].current.clear();
   };
 
   useEffect(() => {
     if (autoUpdate === "on") {
-      unsubscribeRef.current = window.api.on("getLog", handleGetLog);
+      unsubscribeRef.current = window.api.on("getMessage", handleGetLog);
     } else {
       unsubscribeRef.current();
     }
@@ -57,8 +56,11 @@ export const LogPanel = () => {
   return (
     <Grid container spacing={2}>
       <Grid size={9.5}>
-        {LOG_TYPES.map((type) => (
-          <Box key={type} sx={{ display: logType === type ? "block" : "none" }}>
+        {MESSAGE_TYPES.map((type) => (
+          <Box
+            key={type}
+            sx={{ display: messageType === type ? "block" : "none" }}
+          >
             <LazyLog
               caseInsensitive
               enableSearch
@@ -66,7 +68,7 @@ export const LogPanel = () => {
               height={200}
               selectableLines
               follow
-              ref={logsRef[type]}
+              ref={messageRef[type]}
               external
               enableLinks
             />
@@ -85,9 +87,9 @@ export const LogPanel = () => {
         >
           <CustomToggleButton
             label="Log Type"
-            value={logType}
-            options={LOG_TYPES}
-            onChange={handleLogTypeChange}
+            value={messageType}
+            options={MESSAGE_TYPES}
+            onChange={handleMessageTypeChange}
           />
           <CustomToggleButton
             label="Auto Update"
@@ -98,10 +100,10 @@ export const LogPanel = () => {
           <Button
             variant="outlined"
             color="error"
-            onClick={handleClearLog}
+            onClick={handleClearMessages}
             fullWidth
           >
-            Clear Log
+            Clear
           </Button>
         </Stack>
       </Grid>
