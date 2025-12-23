@@ -1,14 +1,14 @@
 import { LazyLog } from "@melloware/react-logviewer";
 import { Grid, Stack, Box, Button } from "@mui/material";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import type { MessageType } from "@shared-types/ipc";
 import { CustomToggleButton } from "./customToggleButton";
 
 const AUTOUPDATE_STATE = {
   ON: "on",
   OFF: "off",
 } as const;
-const MESSAGE_TYPES = ["capture", "upload"] as const satisfies MessageType[];
+const MESSAGE_TYPES = ["capture", "upload"] as const;
+type MessageType = (typeof MESSAGE_TYPES)[number];
 type AutoUpdateStateValue =
   (typeof AUTOUPDATE_STATE)[keyof typeof AUTOUPDATE_STATE];
 
@@ -26,11 +26,8 @@ export const MessagePanel = () => {
     AUTOUPDATE_STATE.ON,
   );
   const messageRef = useMessageRefsMap();
-  const unsubscribeRef = useRef<() => void>(() => {});
-
-  const handleGetLog = (log: string, level: MessageType) => {
-    messageRef[level].current.appendLines([log]);
-  };
+  const captureUnsubscribeRef = useRef<() => void>(() => {});
+  const uploadUnsubscribeRef = useRef<() => void>(() => {});
 
   const handleMessageTypeChange = (newType: MessageType) => {
     setMessageType(newType);
@@ -46,11 +43,26 @@ export const MessagePanel = () => {
 
   useEffect(() => {
     if (autoUpdate === "on") {
-      unsubscribeRef.current = window.api.on("getMessage", handleGetLog);
+      uploadUnsubscribeRef.current = window.api.on(
+        "upload:message",
+        ({ message }) => {
+          messageRef["upload"].current.appendLines([message]);
+        },
+      );
+      captureUnsubscribeRef.current = window.api.on(
+        "capture:message",
+        ({ message }) => {
+          messageRef["capture"].current.appendLines([message]);
+        },
+      );
     } else {
-      unsubscribeRef.current();
+      uploadUnsubscribeRef.current();
+      captureUnsubscribeRef.current();
     }
-    return () => unsubscribeRef.current();
+    return () => {
+      uploadUnsubscribeRef.current();
+      captureUnsubscribeRef.current();
+    };
   }, [autoUpdate]);
 
   return (

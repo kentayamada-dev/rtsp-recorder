@@ -59,7 +59,7 @@ export const App = () => {
   const handleAutoSave: SwitchProps["onChange"] = (event) => {
     const isChecked = event.target.checked;
     setAutoSave(isChecked);
-    window.api.send("saveFormAutoSave", isChecked);
+    window.api.send("form:autosave", isChecked);
   };
 
   const handleClearForm = (fn: () => void) => {
@@ -71,28 +71,26 @@ export const App = () => {
 
   const handleDeleteForm: ButtonProps["onClick"] = async () => {
     setClearForm(true);
-    const confirmed = await window.api.invoke(
-      "showQuestionMessage",
-      "Confirm Delete",
-      "Are you sure you want to delete?",
-    );
+    const confirmed = await window.api.invoke("showQuestionMessage", {
+      title: "Confirm Delete",
+      message: "Are you sure you want to delete?",
+    });
 
     if (!confirmed) return;
 
-    window.api.send("resetRecordForm");
-    window.api.send("resetUploadForm");
+    window.api.send("form:reocrd:reset");
+    window.api.send("form:upload:reset");
   };
 
   const handleStartCapture = (data: CaptureFormValues) => {
     setIsCapturing(true);
-    window.api.send(
-      "startCapture",
-      data.rtspUrl,
-      data.outputFolder,
-      Number(data.captureInterval),
-    );
+    window.api.send("capture:start", {
+      rtspUrl: data.rtspUrl,
+      folderPath: data.outputFolder,
+      interval: Number(data.captureInterval),
+    });
     if (autoSave) {
-      window.api.send("saveRecordForm", {
+      window.api.send("form:reocrd:save", {
         captureInterval: Number(data.captureInterval),
         outputFolder: data.outputFolder,
         rtspUrl: data.rtspUrl,
@@ -101,7 +99,7 @@ export const App = () => {
   };
 
   const handleStopUpload = () => {
-    window.api.send("stopUpload");
+    window.api.send("upload:stop");
     setIsUploading(false);
   };
 
@@ -110,10 +108,15 @@ export const App = () => {
     const uploadInterval = Number(data.uploadInterval);
     const { inputFolder, secretFile } = data;
 
-    window.api.send("startUpload", inputFolder, uploadInterval, 1, secretFile);
+    window.api.send("upload:start", {
+      folderPath: inputFolder,
+      interval: uploadInterval,
+      fps: 1,
+      secretFilePath: secretFile,
+    });
 
     if (autoSave) {
-      window.api.send("saveUploadForm", {
+      window.api.send("form:upload:save", {
         inputFolder,
         uploadInterval,
         secretFile,
@@ -122,7 +125,7 @@ export const App = () => {
   };
 
   const handleStopCapture = () => {
-    window.api.send("stopCapture");
+    window.api.send("capture:stop");
     setIsCapturing(false);
   };
 

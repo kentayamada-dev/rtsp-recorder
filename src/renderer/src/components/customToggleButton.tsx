@@ -9,7 +9,7 @@ import {
 type CustomToggleButtonProps<T extends string> = {
   label: string;
   value: T;
-  options: T[];
+  options: readonly T[];
   onChange: (value: T) => void;
 };
 

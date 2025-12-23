@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { isDev } from "./config";
 import { app } from "electron";
 import { logger } from "./log";
-import { sendEvent } from "./ipc";
+import type { SendEvent } from "./ipc/types";
 
 const FFMPEG_EXE_FILE = "ffmpeg.exe";
 const IMG_EXT = ".png";
@@ -34,6 +34,7 @@ export const captureFrame = (
   rtspUrl: string,
   folderPath: string,
   interval: number,
+  sendEvent: SendEvent,
 ) => {
   return setInterval(async () => {
     const { dateFolder, hourFolder, filename } = formatDate(new Date());
@@ -59,7 +60,7 @@ export const captureFrame = (
       if (code === 0) {
         const logMessage = `Captured: ${filename}`;
         logger.info(logMessage);
-        sendEvent("getMessage", logMessage, "capture");
+        sendEvent("capture:message", { message: logMessage });
       }
     });
   }, interval * 1000);
@@ -92,6 +93,7 @@ const getImagesRecursively = async (dir: string) => {
 export const createVideo = async (
   folderPath: string,
   fps: number,
+  sendEvent: SendEvent,
 ): Promise<{ outputFilePath: string }> => {
   const outputFilePath = join(folderPath, "output.mp4");
   const images = await getImagesRecursively(folderPath);
@@ -135,7 +137,7 @@ export const createVideo = async (
           Math.round((currentFrame / images.length) * 100),
           100,
         );
-        sendEvent("captureProgress", progress);
+        sendEvent("capture:progress", { progress });
       }
     });
 
@@ -143,8 +145,8 @@ export const createVideo = async (
       if (code === 0) {
         const logMessage = `Video created: ${outputFilePath}`;
         logger.info(logMessage);
-        sendEvent("getMessage", logMessage, "capture");
-        sendEvent("captureProgress", 100);
+        sendEvent("capture:progress", { progress: 100 });
+        sendEvent("capture:message", { message: logMessage });
         resolve({
           outputFilePath,
         });

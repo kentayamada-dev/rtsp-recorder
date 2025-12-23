@@ -1,9 +1,11 @@
 import { app } from "electron";
-import { setupIpc } from "./ipc";
 import { createMenu } from "./menu";
 import { createTray } from "./tray";
-import { createMainWindow, getMainWindow } from "./window";
+import { createMainWindow } from "./window";
 import { setIsQuitting } from "./state";
+import { setupInvokeHandlers } from "./ipc/setupInvokeHandlers";
+import { setupEventHandlers } from "./ipc/setupEventHandlers";
+import { createEventSender } from "./ipc/sendEvent";
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -13,29 +15,18 @@ app.on("before-quit", () => {
   setIsQuitting(true);
 });
 
-app.on("second-instance", () => {
-  const mainWindow = getMainWindow();
-
-  if (!mainWindow) return;
-
-  if (mainWindow.isMinimized()) {
-    mainWindow.restore();
-  }
-
-  mainWindow.show();
-  mainWindow.focus();
-});
-
 app.on("window-all-closed", () => {
   app.quit();
 });
 
 const initializeApp = async () => {
   await app.whenReady();
-  setupIpc();
-  await createMainWindow();
+  const mainWindow = await createMainWindow();
+  const sendEvent = createEventSender(mainWindow);
   createMenu();
-  createTray();
+  createTray(mainWindow);
+  setupInvokeHandlers(mainWindow);
+  setupEventHandlers(sendEvent);
 };
 
 initializeApp();

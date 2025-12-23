@@ -1,22 +1,15 @@
-import { BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, shell } from "electron";
 import { join } from "node:path";
-import type { MainWindow } from "./type";
 import { getEnv, isDefined } from "@main/utils";
 import { getIsQuitting } from "@main/state";
 import { isDev } from "@main/config";
 import { store } from "@main/store";
 import { setupAutoUpdater } from "@main/updater";
 
-let mainWindow: MainWindow = null;
-
-const getMainWindow = (): MainWindow => {
-  return mainWindow;
-};
-
-const createMainWindow = async (): Promise<void> => {
+const createMainWindow = async (): Promise<BrowserWindow> => {
   const window = await store.get("window");
 
-  mainWindow = new BrowserWindow({
+  const mainWindow = new BrowserWindow({
     ...(window
       ? {
           ...Object.fromEntries(
@@ -35,6 +28,13 @@ const createMainWindow = async (): Promise<void> => {
       sandbox: false,
       devTools: isDev,
     },
+  });
+
+  app.on("second-instance", () => {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.focus();
   });
 
   mainWindow.on("close", async (e) => {
@@ -58,12 +58,8 @@ const createMainWindow = async (): Promise<void> => {
     mainWindow.hide();
   });
 
-  mainWindow.on("closed", () => {
-    mainWindow = null;
-  });
-
   mainWindow.once("ready-to-show", () => {
-    mainWindow?.show();
+    mainWindow.show();
   });
 
   mainWindow.once("show", () => {
@@ -85,6 +81,8 @@ const createMainWindow = async (): Promise<void> => {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  return mainWindow;
 };
 
-export { getMainWindow, createMainWindow };
+export { createMainWindow };

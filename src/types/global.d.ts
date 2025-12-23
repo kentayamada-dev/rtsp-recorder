@@ -1,4 +1,4 @@
-import type { Api } from "./ipc";
+import type { Api } from "../main/ipc/types";
 
 declare global {
   interface Window {

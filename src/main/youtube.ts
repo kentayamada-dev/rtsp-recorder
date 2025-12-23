@@ -5,7 +5,7 @@ import { access, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { google } from "googleapis";
 import { logger } from "./log";
-import { sendEvent } from "./ipc";
+import type { SendEvent } from "./ipc/types";
 
 const TOKEN_FILE = "token.json";
 const TOKEN_FILE_PATH = join(app.getPath("userData"), TOKEN_FILE);
@@ -24,6 +24,7 @@ export const uploadVideo = async (
   secretFilePath: string,
   videoTitle: string,
   videoFilePath: string,
+  sendEvent: SendEvent,
 ): Promise<void> => {
   let credentials: any = null;
 
@@ -64,7 +65,7 @@ export const uploadVideo = async (
   });
 
   try {
-    sendEvent("getMessage", `Upload started`, "upload");
+    sendEvent("upload:message", { message: "Upload started" });
 
     const fileStats = await stat(videoFilePath);
     const fileSize = fileStats.size;
@@ -74,7 +75,7 @@ export const uploadVideo = async (
     videoStream.on("data", (chunk) => {
       bytesUploaded += chunk.length;
       const progress = Math.round((bytesUploaded / fileSize) * 100);
-      sendEvent("uploadProgress", progress);
+      sendEvent("upload:progress", { progress });
     });
 
     const response = await youtube.videos.insert({
@@ -95,7 +96,7 @@ export const uploadVideo = async (
     if (response.data.id) {
       const logMessage = `Uploaded: https://youtu.be/${response.data.id}`;
       logger.info(logMessage);
-      sendEvent("getMessage", logMessage, "upload");
+      sendEvent("upload:message", { message: logMessage });
     } else {
       throw new Error(
         `Upload failed with unexpected response: ${JSON.stringify(

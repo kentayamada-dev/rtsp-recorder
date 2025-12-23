@@ -53,18 +53,19 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
 
   useEffect(() => {
     const captureProgressUnsubscribe = window.api.on(
-      "captureProgress",
-      (progress) => {
+      "capture:progress",
+      ({ progress }) => {
         setCaptureProgress(progress);
       },
     );
 
     const uploadProgressUnsubscribe = window.api.on(
-      "uploadProgress",
-      (progress) => {
+      "upload:progress",
+      ({ progress }) => {
         setUploadProgress(progress);
       },
     );
+
     return () => {
       captureProgressUnsubscribe();
       uploadProgressUnsubscribe();

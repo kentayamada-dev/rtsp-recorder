@@ -15,7 +15,7 @@ import { Pause, PlayArrow } from "@mui/icons-material";
 const formSchema = object({
   inputFolder: string().refine(
     async (folderPath) => {
-      const isValid = await window.api.invoke("validateFolder", folderPath);
+      const isValid = await window.api.invoke("validateFolder", { folderPath });
       return isValid;
     },
     { message: "Invalid folder path" },
@@ -26,7 +26,7 @@ const formSchema = object({
   ),
   secretFile: string().refine(
     async (filePath) => {
-      const isValid = await window.api.invoke("validateJsonFile", filePath);
+      const isValid = await window.api.invoke("validateJsonFile", { filePath });
       return isValid;
     },
     { message: "Invalid file path" },
@@ -130,7 +130,7 @@ export const UploadForm = ({
   useEffect(() => {
     if (autoSave) {
       const { inputFolder, uploadInterval, secretFile } = getValues();
-      window.api.send("saveUploadForm", {
+      window.api.send("form:upload:save", {
         uploadInterval: uploadInterval
           ? Number(uploadInterval)
           : Number(initialDefaults.uploadInterval),

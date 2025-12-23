@@ -19,7 +19,7 @@ const formSchema = object({
   ),
   outputFolder: string().refine(
     async (folderPath) => {
-      const isValid = await window.api.invoke("validateFolder", folderPath);
+      const isValid = await window.api.invoke("validateFolder", { folderPath });
       return isValid;
     },
     { message: "Invalid folder path" },
@@ -121,7 +121,7 @@ export const CaptureForm = ({
   useEffect(() => {
     if (autoSave) {
       const { captureInterval, outputFolder, rtspUrl } = getValues();
-      window.api.send("saveRecordForm", {
+      window.api.send("form:reocrd:save", {
         captureInterval: captureInterval
           ? Number(captureInterval)
           : Number(initialDefaults.captureInterval),
