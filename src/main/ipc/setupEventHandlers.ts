@@ -1,7 +1,9 @@
 import { ipcMain } from "electron";
-import type { EventHandlerMap, Interval, SendEvent } from "./types";
+import type { EventHandlerMap, SendEvent } from "./types";
 import { store } from "@main/store";
+import cron, { type ScheduledTask } from "node-cron";
 import { captureFrame, createVideo } from "@main/ffmpeg";
+import { formatDate, isDefined } from "@main/utils";
 import { uploadVideo } from "@main/youtube";
 
 const registerEventHandlers = (handlers: EventHandlerMap) => {
@@ -10,25 +12,34 @@ const registerEventHandlers = (handlers: EventHandlerMap) => {
   });
 };
 
-let captureInterval: Interval = null;
-let uploadInterval: Interval = null;
-let isUploading = false;
-const ONE_HOUR_MS = 3600000;
+let captureInterval: ReturnType<typeof setInterval> | null = null;
+let scheduledUploadTask: ScheduledTask | null = null;
 
-const getVideoTitle = (date: Date): string => {
-  const pad = (num: number) => String(num).padStart(2, "0");
+const generateCronSchedule = (frequency: number): string => {
+  const schedules: { [key: number]: number[] } = {
+    1: [0], // midnight
+    2: [0, 12], // midnight, noon
+    3: [0, 8, 16], // every 8 hours
+    4: [0, 6, 12, 18], // every 6 hours
+    5: [0, 5, 10, 15, 20], // every 5 hours
+    6: [0, 4, 8, 12, 16, 20], // every 4 hours
+  };
 
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
+  const hours = isDefined(schedules[frequency]);
+  const hourString = hours.join(",");
 
-  return `${year}-${month}-${day}`;
+  return `0 ${hourString} * * *`;
 };
 
 export const setupEventHandlers = (sendEvent: SendEvent) => {
   registerEventHandlers({
-    "capture:start": (_event, { rtspUrl, folderPath, interval }) => {
-      captureInterval = captureFrame(rtspUrl, folderPath, interval, sendEvent);
+    "capture:start": (_event, { rtspUrl, interval, outputFolder }) => {
+      captureInterval = captureFrame({
+        rtspUrl,
+        outputFolder,
+        interval,
+        sendEvent,
+      });
     },
     "capture:stop": () => {
       if (captureInterval) {
@@ -51,32 +62,28 @@ export const setupEventHandlers = (sendEvent: SendEvent) => {
     "form:upload:save": (_envet, formData) => {
       store.set("uploadForm.values", formData);
     },
-    "upload:start": (_event, { folderPath, interval, fps, secretFilePath }) => {
-      uploadInterval = setInterval(async () => {
-        if (isUploading) return;
-        isUploading = true;
-        const { outputFilePath } = await createVideo(
-          folderPath,
-          fps,
-          sendEvent,
-        );
-        const today = new Date();
-        const videoTitle = getVideoTitle(today);
-        await uploadVideo(
-          today,
-          secretFilePath,
-          videoTitle,
-          outputFilePath,
-          sendEvent,
-        );
-        isUploading = false;
-      }, interval * ONE_HOUR_MS);
+    "upload:start": async (
+      _event,
+      { fps, inputFolder, numberUpload, secretFile },
+    ) => {
+      scheduledUploadTask = cron.schedule(
+        generateCronSchedule(numberUpload),
+        async () => {
+          const today = new Date();
+          const videoTitle = formatDate(today).second;
+          const { outputFilePath } = await createVideo(
+            inputFolder,
+            fps,
+            sendEvent,
+            videoTitle,
+          );
+          await uploadVideo(secretFile, videoTitle, outputFilePath, sendEvent);
+        },
+      );
     },
     "upload:stop": () => {
-      if (uploadInterval) {
-        clearInterval(uploadInterval);
-        uploadInterval = null;
-      }
+      scheduledUploadTask?.stop();
+      scheduledUploadTask = null;
     },
   });
 };

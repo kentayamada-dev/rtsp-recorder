@@ -6,6 +6,15 @@ import { setIsQuitting } from "./state";
 import { setupInvokeHandlers } from "./ipc/setupInvokeHandlers";
 import { setupEventHandlers } from "./ipc/setupEventHandlers";
 import { createEventSender } from "./ipc/sendEvent";
+import { logger } from "./log";
+
+process.on("uncaughtException", (error) => {
+  logger.error(`Uncaught Exception: ${error}`);
+});
+
+process.on("unhandledRejection", (error) => {
+  logger.error(`Unhandled Rejection: ${error}`);
+});
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();

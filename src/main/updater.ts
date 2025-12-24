@@ -2,6 +2,8 @@ import { BrowserWindow, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
 import { logger } from "./log";
 
+const UPDATE_NOW = 0;
+
 export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
   autoUpdater.autoDownload = false;
 
@@ -14,7 +16,7 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
       buttons: ["Update Now", "Later"],
     });
 
-    if (result.response === 0) {
+    if (result.response === UPDATE_NOW) {
       autoUpdater.downloadUpdate();
     }
   });
@@ -28,17 +30,20 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
       buttons: ["Restart Now", "Later"],
     });
 
-    if (result.response === 0) {
+    if (result.response === UPDATE_NOW) {
       autoUpdater.quitAndInstall();
     }
   });
 
-  autoUpdater.on("error", (error) => {
+  autoUpdater.on("error", async (error) => {
     logger.error("Auto-update error:", error);
-    dialog.showErrorBox(
-      "Update Error",
-      "Something went wrong while updating the app. Please try again later.",
-    );
+    await dialog.showMessageBox(mainWindow, {
+      type: "error",
+      title: "Update Error",
+      message: "Something went wrong while updating the app.",
+      detail: "Please try again later.",
+      buttons: ["OK"],
+    });
   });
 
   autoUpdater.checkForUpdates();

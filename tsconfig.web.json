@@ -7,7 +7,7 @@
     "baseUrl": ".",
     "paths": {
       "@renderer/*": ["src/renderer/src/*"],
-      "@shared-types/*": ["src/types/*"]
+      "@shared-types/*": ["src/shared/*"]
     },
 
     // Interop Constraints
@@ -34,7 +34,7 @@
   },
   "include": [
     "src/renderer/**/*",
-    "src/types/global.d.ts",
-    "src/types/form.d.ts"
+    "src/shared/global.d.ts",
+    "src/shared/form.d.ts"
   ]
 }

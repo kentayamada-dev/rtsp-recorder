@@ -86,12 +86,12 @@ export const App = () => {
     setIsCapturing(true);
     window.api.send("capture:start", {
       rtspUrl: data.rtspUrl,
-      folderPath: data.outputFolder,
-      interval: Number(data.captureInterval),
+      outputFolder: data.outputFolder,
+      interval: Number(data.interval),
     });
     if (autoSave) {
       window.api.send("form:capture:save", {
-        captureInterval: Number(data.captureInterval),
+        interval: Number(data.interval),
         outputFolder: data.outputFolder,
         rtspUrl: data.rtspUrl,
       });
@@ -105,20 +105,19 @@ export const App = () => {
 
   const handleStartUpload = (data: UploadFormValues) => {
     setIsUploading(true);
-    const uploadInterval = Number(data.uploadInterval);
-    const { inputFolder, secretFile } = data;
+    const { inputFolder, secretFile, numberUpload } = data;
 
     window.api.send("upload:start", {
-      folderPath: inputFolder,
-      interval: uploadInterval,
+      inputFolder: inputFolder,
       fps: 1,
-      secretFilePath: secretFile,
+      secretFile,
+      numberUpload,
     });
 
     if (autoSave) {
       window.api.send("form:upload:save", {
         inputFolder,
-        uploadInterval,
+        numberUpload,
         secretFile,
       });
     }

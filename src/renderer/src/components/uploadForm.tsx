@@ -4,8 +4,13 @@ import {
   Button,
   type ButtonProps,
   IconButton,
+  Select,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  FormHelperText,
 } from "@mui/material";
-import { object, string } from "zod";
+import { object, string, number } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { useEffect } from "react";
@@ -20,10 +25,6 @@ const formSchema = object({
     },
     { message: "Invalid folder path" },
   ),
-  uploadInterval: string().regex(
-    /^[1-9]\d*$/,
-    "Must be a positive whole number",
-  ),
   secretFile: string().refine(
     async (filePath) => {
       const isValid = await window.api.invoke("validateJsonFile", { filePath });
@@ -31,6 +32,7 @@ const formSchema = object({
     },
     { message: "Invalid file path" },
   ),
+  numberUpload: number().min(1).max(6),
 });
 
 type UploadFormProps = {
@@ -45,7 +47,7 @@ type UploadFormProps = {
 const initialDefaults: UploadFormValues = {
   secretFile: "",
   inputFolder: "",
-  uploadInterval: "24",
+  numberUpload: 1,
 };
 
 export const UploadForm = ({
@@ -97,7 +99,7 @@ export const UploadForm = ({
   };
 
   const inputFolderErrorMessage = errors.inputFolder?.message;
-  const uploadIntervalErrorMessage = errors.uploadInterval?.message;
+  const numberUploadErrorMessage = errors.numberUpload?.message;
   const secretFileErrorMessage = errors.secretFile?.message;
 
   useEffect(() => {
@@ -114,7 +116,7 @@ export const UploadForm = ({
       };
 
       setIfDefined("inputFolder", savedFormState.inputFolder);
-      setIfDefined("uploadInterval", savedFormState.uploadInterval?.toString());
+      setIfDefined("numberUpload", savedFormState.numberUpload);
       setIfDefined("secretFile", savedFormState.secretFile);
     };
 
@@ -129,11 +131,9 @@ export const UploadForm = ({
 
   useEffect(() => {
     if (autoSave) {
-      const { inputFolder, uploadInterval, secretFile } = getValues();
+      const { inputFolder, numberUpload, secretFile } = getValues();
       window.api.send("form:upload:save", {
-        uploadInterval: uploadInterval
-          ? Number(uploadInterval)
-          : Number(initialDefaults.uploadInterval),
+        numberUpload,
         inputFolder,
         secretFile,
       });
@@ -147,23 +147,34 @@ export const UploadForm = ({
           <Grid container spacing={3}>
             <Grid size={12}>
               <Controller
-                name="uploadInterval"
                 control={control}
+                name="numberUpload"
                 render={({ field }) => (
-                  <TextField
-                    error={Boolean(uploadIntervalErrorMessage)}
-                    helperText={uploadIntervalErrorMessage || " "}
-                    variant="standard"
-                    label="Upload Interval (h)"
+                  <FormControl
                     fullWidth
                     required
-                    slotProps={{
-                      input: {
-                        readOnly: isUploading,
-                      },
-                    }}
-                    {...field}
-                  />
+                    variant="standard"
+                    error={Boolean(numberUploadErrorMessage)}
+                  >
+                    <InputLabel id="numberUpload-label">
+                      Upload Times
+                    </InputLabel>
+                    <Select
+                      labelId="numberUpload-label"
+                      label="Upload Times"
+                      inputProps={{ readOnly: isUploading }}
+                      {...field}
+                    >
+                      {Array.from({ length: 6 }, (_, i) => (
+                        <MenuItem key={i + 1} value={i + 1}>
+                          {i + 1}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>
+                      {numberUploadErrorMessage || " "}
+                    </FormHelperText>
+                  </FormControl>
                 )}
               />
             </Grid>

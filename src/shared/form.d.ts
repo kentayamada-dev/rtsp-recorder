@@ -3,25 +3,23 @@ type StrictOmit<T, K extends keyof T> = Omit<T, K>;
 type CaptureFormValues = {
   rtspUrl: string;
   outputFolder: string;
-  captureInterval: string;
+  interval: string;
 };
 
 type UploadFormValues = {
   inputFolder: string;
   secretFile: string;
-  uploadInterval: string;
+  numberUpload: number;
 };
 
 type CaptureFormStore = {
-  values: StrictOmit<CaptureFormValues, "captureInterval"> & {
-    captureInterval: number;
+  values: StrictOmit<CaptureFormValues, "interval"> & {
+    interval: number;
   };
 };
 
 type UploadFormStore = {
-  values: StrictOmit<UploadFormValues, "uploadInterval"> & {
-    uploadInterval: number;
-  };
+  values: UploadFormValues;
 };
 
 type FormStore = {

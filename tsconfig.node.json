@@ -6,7 +6,7 @@
     "types": ["electron-vite/node"],
     "baseUrl": ".",
     "paths": {
-      "@shared-types/*": ["src/types/*"],
+      "@shared-types/*": ["src/shared/*"],
       "@main/*": ["src/main/*"]
     },
 
@@ -36,6 +36,6 @@
     "electron.vite.config.ts",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/types/form.d.ts"
+    "src/shared/form.d.ts"
   ]
 }

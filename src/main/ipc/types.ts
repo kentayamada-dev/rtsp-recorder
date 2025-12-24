@@ -7,8 +7,6 @@ import type { createEventSender } from "./sendEvent";
 
 type Args<T> = T extends void ? [] : [T];
 
-type Interval = ReturnType<typeof setInterval> | null;
-
 type Invoke = {
   selectFolder: {
     request: void;
@@ -53,21 +51,14 @@ type Invoke = {
 
 type RendererToMainEvents = {
   "capture:start": {
-    payload: {
-      rtspUrl: string;
-      folderPath: string;
-      interval: number;
-    };
+    payload: CaptureFormStore["values"];
   };
   "capture:stop": {
     payload: void;
   };
   "upload:start": {
-    payload: {
-      folderPath: string;
-      interval: number;
+    payload: UploadFormStore["values"] & {
       fps: number;
-      secretFilePath: string;
     };
   };
   "upload:stop": {
@@ -148,16 +139,10 @@ type Api = {
     channel: K,
     listener: (...args: Args<MainToRendererEvents[K]["payload"]>) => void,
   ): () => void;
-
-  off<K extends keyof RendererToMainEvents>(
-    channel: K,
-    listener: (...args: Args<RendererToMainEvents[K]["payload"]>) => void,
-  ): void;
 };
 
 export type {
   Args,
-  Interval,
   Api,
   MainToRendererEvents,
   InvokeHandlerMap,

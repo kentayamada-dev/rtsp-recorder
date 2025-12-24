@@ -30,7 +30,7 @@ const createStore = <Schema extends Record<string, any>>() => {
 
   const save = () => {
     writeChain = writeChain.then(async () => {
-      await writeFile(filePath, JSON.stringify(data, null, 2), "utf-8");
+      await writeFile(filePath, JSON.stringify(data), "utf-8");
     });
 
     return writeChain;

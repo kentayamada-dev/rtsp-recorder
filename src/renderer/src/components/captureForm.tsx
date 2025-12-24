@@ -24,10 +24,7 @@ const formSchema = object({
     },
     { message: "Invalid folder path" },
   ),
-  captureInterval: string().regex(
-    /^[1-9]\d*$/,
-    "Must be a positive whole number",
-  ),
+  interval: string().regex(/^[1-9]\d*$/, "Must be a positive whole number"),
 });
 
 type CaptureFormProps = {
@@ -40,7 +37,7 @@ type CaptureFormProps = {
 };
 
 const initialDefaults: CaptureFormValues = {
-  captureInterval: "60",
+  interval: "60",
   rtspUrl: "",
   outputFolder: "",
 };
@@ -85,7 +82,7 @@ export const CaptureForm = ({
   };
 
   const rtspUrlErrorMessage = errors.rtspUrl?.message;
-  const captureIntervalErrorMessage = errors.captureInterval?.message;
+  const intervalErrorMessage = errors.interval?.message;
   const outputFolderErrorMessage = errors.outputFolder?.message;
 
   useEffect(() => {
@@ -103,10 +100,7 @@ export const CaptureForm = ({
 
       setIfDefined("rtspUrl", savedFormState.rtspUrl);
       setIfDefined("outputFolder", savedFormState.outputFolder);
-      setIfDefined(
-        "captureInterval",
-        savedFormState.captureInterval?.toString(),
-      );
+      setIfDefined("interval", savedFormState.interval?.toString());
     };
 
     fetchData();
@@ -120,11 +114,11 @@ export const CaptureForm = ({
 
   useEffect(() => {
     if (autoSave) {
-      const { captureInterval, outputFolder, rtspUrl } = getValues();
+      const { interval, outputFolder, rtspUrl } = getValues();
       window.api.send("form:capture:save", {
-        captureInterval: captureInterval
-          ? Number(captureInterval)
-          : Number(initialDefaults.captureInterval),
+        interval: interval
+          ? Number(interval)
+          : Number(initialDefaults.interval),
         outputFolder,
         rtspUrl,
       });
@@ -160,12 +154,12 @@ export const CaptureForm = ({
             </Grid>
             <Grid size={12}>
               <Controller
-                name="captureInterval"
+                name="interval"
                 control={control}
                 render={({ field }) => (
                   <TextField
-                    error={Boolean(captureIntervalErrorMessage)}
-                    helperText={captureIntervalErrorMessage || " "}
+                    error={Boolean(intervalErrorMessage)}
+                    helperText={intervalErrorMessage || " "}
                     variant="standard"
                     label="Capture Interval (sec)"
                     fullWidth

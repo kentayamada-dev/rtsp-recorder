@@ -1,110 +1,114 @@
-import { authenticate } from "@google-cloud/local-auth";
 import { app } from "electron";
 import { createReadStream } from "node:fs";
 import { access, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { google } from "googleapis";
-import { logger } from "./log";
+import { authenticate } from "@google-cloud/local-auth";
 import type { SendEvent } from "./ipc/types";
 
-const TOKEN_FILE = "token.json";
-const TOKEN_FILE_PATH = join(app.getPath("userData"), TOKEN_FILE);
+const PORT = 42813;
+const SCOPES = ["https://www.googleapis.com/auth/youtube.upload"];
+const REDIRECT_URI = `http://127.0.0.1:${PORT}`;
+const TOKEN_FILE_PATH = join(app.getPath("userData"), "token.json");
+
+type CredentialsFile = {
+  installed: {
+    client_id: string;
+    client_secret: string;
+  };
+};
 
 const fileExists = async (filePath: string): Promise<boolean> => {
   try {
     await access(filePath);
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 };
 
+const loadOAuthClient = async (clientSecretFile: string) => {
+  const content = await readFile(clientSecretFile, "utf-8");
+  const { client_id, client_secret } = (JSON.parse(content) as CredentialsFile)
+    .installed;
+
+  const oauth2Client = new google.auth.OAuth2(
+    client_id,
+    client_secret,
+    REDIRECT_URI,
+  );
+
+  if (await fileExists(TOKEN_FILE_PATH)) {
+    const credentials = JSON.parse(await readFile(TOKEN_FILE_PATH, "utf-8"));
+    oauth2Client.setCredentials(credentials);
+    return oauth2Client;
+  }
+
+  const credentials = (
+    await authenticate({
+      scopes: SCOPES,
+      keyfilePath: clientSecretFile,
+    })
+  ).credentials;
+
+  await writeFile(TOKEN_FILE_PATH, JSON.stringify(credentials), "utf-8");
+  oauth2Client.setCredentials(credentials);
+
+  return oauth2Client;
+};
+
 export const uploadVideo = async (
-  today: Date,
-  secretFilePath: string,
+  clientSecretFile: string,
   videoTitle: string,
   videoFilePath: string,
   sendEvent: SendEvent,
 ): Promise<void> => {
-  let credentials: any = null;
+  sendEvent("upload:message", { message: "Starting YouTube authentication…" });
 
-  if (await fileExists(TOKEN_FILE_PATH)) {
-    const tokenData = await readFile(TOKEN_FILE_PATH, "utf-8");
-    credentials = JSON.parse(tokenData);
-  }
-
-  if (
-    !credentials ||
-    !credentials.refresh_token ||
-    new Date(credentials.expiry_date) <= today
-  ) {
-    const auth = await authenticate({
-      scopes: "https://www.googleapis.com/auth/youtube.upload",
-      keyfilePath: secretFilePath,
-    });
-
-    credentials = auth.credentials;
-    await writeFile(TOKEN_FILE_PATH, JSON.stringify(credentials));
-  }
-
-  const auth = new google.auth.OAuth2();
-  auth.setCredentials(credentials);
-
-  auth.on("tokens", (tokens) => {
-    if (tokens.refresh_token) {
-      credentials.refresh_token = tokens.refresh_token;
-    }
-    credentials.access_token = tokens.access_token;
-    credentials.expiry_date = tokens.expiry_date;
-    writeFile(TOKEN_FILE_PATH, JSON.stringify(credentials));
-  });
+  const auth = await loadOAuthClient(clientSecretFile);
 
   const youtube = google.youtube({
     version: "v3",
-    auth: auth,
+    auth,
   });
 
-  try {
-    sendEvent("upload:message", { message: "Upload started" });
+  const fileSize = (await stat(videoFilePath)).size;
+  const videoStream = createReadStream(videoFilePath);
 
-    const fileStats = await stat(videoFilePath);
-    const fileSize = fileStats.size;
-    const videoStream = createReadStream(videoFilePath);
-    let bytesUploaded = 0;
+  let bytesUploaded = 0;
+  let lastProgress = 0;
 
-    videoStream.on("data", (chunk) => {
-      bytesUploaded += chunk.length;
-      const progress = Math.round((bytesUploaded / fileSize) * 100);
+  videoStream.on("data", (chunk) => {
+    bytesUploaded += chunk.length;
+    const progress = Math.round((bytesUploaded / fileSize) * 100);
+
+    if (progress !== lastProgress) {
+      lastProgress = progress;
       sendEvent("upload:progress", { progress });
-    });
-
-    const response = await youtube.videos.insert({
-      part: ["snippet", "status"],
-      requestBody: {
-        snippet: {
-          title: videoTitle,
-        },
-        status: {
-          privacyStatus: "private",
-        },
-      },
-      media: {
-        body: videoStream,
-      },
-    });
-
-    if (response.data.id) {
-      const logMessage = `Uploaded: https://youtu.be/${response.data.id}`;
-      logger.info(logMessage);
-      sendEvent("upload:message", { message: logMessage });
-    } else {
-      throw new Error(
-        `Upload failed with unexpected response: ${JSON.stringify(
-          response.data,
-        )}`,
-      );
     }
-  } catch (error) {
-    logger.error(`Upload failed: ${error}`);
+  });
+
+  sendEvent("upload:message", { message: "Uploading video…" });
+
+  const response = await youtube.videos.insert({
+    part: ["snippet", "status"],
+    requestBody: {
+      snippet: {
+        title: videoTitle,
+      },
+      status: {
+        privacyStatus: "private",
+      },
+    },
+    media: {
+      body: videoStream,
+    },
+  });
+
+  if (!response.data.id) {
+    throw new Error("Upload failed: No video ID returned");
   }
+
+  const url = `https://youtu.be/${response.data.id}`;
+  sendEvent("upload:message", { message: `Uploaded: ${url}` });
 };

@@ -1,11 +1,12 @@
 import { mkdir, appendFile } from "node:fs/promises";
 import { join } from "node:path";
 import { app } from "electron";
-import { isDefined } from "@main/utils";
+import { formatDate } from "@main/utils";
 import type { LoggerOptions } from "./type";
-import type { LogLevel } from "@shared-types/ipc";
 
 const FOLDER_NAME = "Logs";
+
+type LogLevel = "info" | "error";
 
 const colors = {
   reset: "\x1b[0m",
@@ -14,40 +15,19 @@ const colors = {
   gray: "\x1b[90m",
 } as const;
 
-const pad = (n: number, len = 2) => String(n).padStart(len, "0");
-
-const formatIso8601WithOffset = (): string => {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hour = pad(date.getHours());
-  const minute = pad(date.getMinutes());
-  const second = pad(date.getSeconds());
-  const ms = pad(date.getMilliseconds(), 3);
-
-  const offsetMinutesTotal = -date.getTimezoneOffset();
-  const sign = offsetMinutesTotal >= 0 ? "+" : "-";
-  const abs = Math.abs(offsetMinutesTotal);
-  const offsetHour = pad(Math.floor(abs / 60));
-  const offsetMinute = pad(abs % 60);
-
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}${sign}${offsetHour}:${offsetMinute}`;
-};
-
 const createLogger = (options: LoggerOptions) => {
   const { logToTerminal } = options;
   const logsBaseDir = join(app.getPath("userData"), FOLDER_NAME);
+  const { iso8601WithOffset, date } = formatDate(new Date());
 
   const getLogFilePath = async (logLevel: LogLevel): Promise<string> => {
-    const today = isDefined(formatIso8601WithOffset().slice(0, 10));
-    const datePath = join(logsBaseDir, today);
+    const datePath = join(logsBaseDir, date);
     await mkdir(datePath, { recursive: true });
     return join(datePath, `${logLevel}.log`);
   };
 
   const write = async (logLevel: LogLevel, message: string, args: any[]) => {
-    const timestamp = formatIso8601WithOffset();
+    const timestamp = iso8601WithOffset;
 
     const formatted = `[${timestamp}] [${logLevel.toUpperCase()}] ${message}${
       args.length > 0 ? ` ${JSON.stringify(args)}` : ""
