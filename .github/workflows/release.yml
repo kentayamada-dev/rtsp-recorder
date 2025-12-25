@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   Publish:
-    timeout-minutes: 5
+    timeout-minutes: 6
     runs-on: windows-latest
     env:
       VOLTA_FEATURE_PNPM: 1
@@ -112,7 +112,7 @@ jobs:
 
           echo "## ASAR Package Structure" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          npx asar list app.asar >> $GITHUB_STEP_SUMMARY
+          npx asar list app.asar | grep -v "^/node_modules/" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   DeletePreviousWorkflow:
