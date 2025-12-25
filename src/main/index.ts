@@ -1,5 +1,4 @@
 import { app } from "electron";
-import { createMenu } from "./menu";
 import { createTray } from "./tray";
 import { createMainWindow } from "./window";
 import { setIsQuitting } from "./state";
@@ -7,6 +6,8 @@ import { setupInvokeHandlers } from "./ipc/setupInvokeHandlers";
 import { setupEventHandlers } from "./ipc/setupEventHandlers";
 import { createEventSender } from "./ipc/sendEvent";
 import { logger } from "./log";
+import { createMenu } from "./menu";
+import { setupSecurity } from "./security";
 
 process.on("uncaughtException", (error) => {
   logger.error(`Uncaught Exception: ${error}`);
@@ -31,6 +32,7 @@ app.on("window-all-closed", () => {
 const initializeApp = async () => {
   await app.whenReady();
   const mainWindow = await createMainWindow();
+  setupSecurity(mainWindow);
   const sendEvent = createEventSender(mainWindow);
   createMenu();
   createTray(mainWindow);

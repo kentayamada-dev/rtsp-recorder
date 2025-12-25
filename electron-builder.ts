@@ -61,7 +61,7 @@ export default {
     "!**/.vscode/*",
     "!src/*",
     "!electron.vite.config.ts",
-    "!{prettier.config.ts,.prettierignore,README.md,note.md,LICENSE}",
+    "!{prettier.config.mts,.prettierignore,README.md,note.md,LICENSE}",
     "!{.npmrc,pnpm-lock.yaml,pnpm-workspace.yaml}",
     "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}",
   ],

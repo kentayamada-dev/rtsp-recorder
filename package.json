@@ -1,6 +1,6 @@
 {
   "name": "rtsp-recorder",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "main": "out/main/index.js",
   "author": {
     "name": "Kenta Yamada"
@@ -13,7 +13,7 @@
     "url": "git+https://github.com/kentayamada-dev/rtsp-recorder.git"
   },
   "scripts": {
-    "format": "prettier . --write --config prettier.config.ts",
+    "format": "prettier . --write --config prettier.config.mts",
     "postinstall": "electron-builder install-app-deps",
     "dev": "electron-vite dev",
     "typecheck": "pnpm typecheck:node && pnpm typecheck:web",
