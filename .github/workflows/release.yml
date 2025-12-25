@@ -111,6 +111,11 @@ jobs:
           done
 
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ASAR Package Structure" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npx asar extract app.asar ./extracted
+          tree extracted >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
   DeletePreviousWorkflow:
     timeout-minutes: 3
