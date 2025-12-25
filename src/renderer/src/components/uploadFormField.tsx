@@ -9,13 +9,17 @@ import {
   InputLabel,
   MenuItem,
   FormHelperText,
+  Tooltip,
+  styled,
+  tooltipClasses,
+  type TooltipProps,
 } from "@mui/material";
 import { object, string, number } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { useEffect } from "react";
-import type { UploadFormValues } from "@shared-types/form";
-import { Pause, PlayArrow } from "@mui/icons-material";
+import type { UploadForm } from "@shared-types/form";
+import { Info, Pause, PlayArrow } from "@mui/icons-material";
 
 const formSchema = object({
   inputFolder: string().refine(
@@ -35,29 +39,41 @@ const formSchema = object({
   numberUpload: number().min(1).max(6),
 });
 
-type UploadFormProps = {
+type UploadFormFieldProps = {
   autoSave: boolean;
   clearForm: boolean;
   handleClearForm: (fn: () => void) => void;
   isUploading: boolean;
-  onStartUpload: (data: UploadFormValues) => void;
+  onStartUpload: (data: UploadForm) => void;
   onStopUpload: () => void;
 };
 
-const initialDefaults: UploadFormValues = {
+const initialDefaults: UploadForm = {
   secretFile: "",
   inputFolder: "",
   numberUpload: 1,
 };
 
-export const UploadForm = ({
+const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip
+    {...props}
+    {...(className ? { classes: { popper: className } } : {})}
+  />
+))(() => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: "#23272e",
+    border: "1px solid rgba(255, 255, 255, 0.12)",
+  },
+}));
+
+export const UploadFormField = ({
   autoSave,
   clearForm,
   handleClearForm,
   isUploading,
   onStartUpload,
   onStopUpload,
-}: UploadFormProps) => {
+}: UploadFormFieldProps) => {
   const {
     control,
     handleSubmit,
@@ -65,14 +81,14 @@ export const UploadForm = ({
     reset,
     getValues,
     formState: { errors },
-  } = useForm<UploadFormValues>({
+  } = useForm<UploadForm>({
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: initialDefaults,
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit: SubmitHandler<UploadFormValues> = async (data) => {
+  const onSubmit: SubmitHandler<UploadForm> = async (data) => {
     if (isUploading) {
       onStopUpload();
       return;
@@ -109,7 +125,7 @@ export const UploadForm = ({
       const savedFormState = await window.api.invoke("getUploadForm");
       if (!savedFormState) return;
 
-      const setIfDefined = (field: keyof UploadFormValues, value: any) => {
+      const setIfDefined = (field: keyof UploadForm, value: any) => {
         if (value !== undefined && value !== null && value !== "") {
           setValue(field, value);
         }
@@ -145,7 +161,7 @@ export const UploadForm = ({
       <Grid container spacing={4}>
         <Grid size={9}>
           <Grid container spacing={3}>
-            <Grid size={12}>
+            <Grid size={11}>
               <Controller
                 control={control}
                 name="numberUpload"
@@ -177,6 +193,34 @@ export const UploadForm = ({
                   </FormControl>
                 )}
               />
+            </Grid>
+            <Grid
+              size={1}
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <HtmlTooltip
+                placement="top"
+                title={
+                  <>
+                    <ul
+                      style={{ margin: 0, paddingLeft: 10, paddingRight: 10 }}
+                    >
+                      <li>1 = Daily at midnight</li>
+                      <li>2 = Twice daily (midnight, noon)</li>
+                      <li>3 = Every 8 hours</li>
+                      <li>4 = Every 6 hours</li>
+                      <li>5 = Every 5 hours</li>
+                      <li>6 = Every 4 hours</li>
+                    </ul>
+                  </>
+                }
+              >
+                <Info />
+              </HtmlTooltip>
             </Grid>
             <Grid size={9}>
               <Controller

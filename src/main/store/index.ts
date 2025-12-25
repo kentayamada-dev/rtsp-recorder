@@ -1,11 +1,7 @@
 import { app } from "electron";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type {
-  FormStore,
-  CaptureFormStore,
-  UploadFormStore,
-} from "@shared-types/form";
+import type { FormStore, CaptureForm, UploadForm } from "@shared-types/form";
 import { isDefined } from "@main/utils";
 import type { PathKeys, PathValue } from "./type";
 
@@ -113,8 +109,8 @@ const createStore = <Schema extends Record<string, any>>() => {
 
 type StoreSchema = {
   form: FormStore;
-  captureForm: CaptureFormStore;
-  uploadForm: UploadFormStore;
+  captureForm: CaptureForm;
+  uploadForm: UploadForm;
   window: {
     x: number;
     y: number;

@@ -6,19 +6,19 @@ import {
   ToggleButton,
 } from "@mui/material";
 
-type CustomToggleButtonProps<T extends string> = {
+type CustomToggleButtonFieldProps<T extends string> = {
   label: string;
   value: T;
   options: readonly T[];
   onChange: (value: T) => void;
 };
 
-export const CustomToggleButton = <T extends string>({
+export const CustomToggleButtonField = <T extends string>({
   label,
   value,
   options,
   onChange,
-}: CustomToggleButtonProps<T>) => {
+}: CustomToggleButtonFieldProps<T>) => {
   const handleChange: ToggleButtonGroupProps["onChange"] = (
     _event,
     newValue,

@@ -33,11 +33,9 @@ const generateCronSchedule = (frequency: number): string => {
 
 export const setupEventHandlers = (sendEvent: SendEvent) => {
   registerEventHandlers({
-    "capture:start": (_event, { rtspUrl, interval, outputFolder }) => {
+    "capture:start": (_event, data) => {
       captureInterval = captureFrame({
-        rtspUrl,
-        outputFolder,
-        interval,
+        ...data,
         sendEvent,
       });
     },
@@ -51,16 +49,16 @@ export const setupEventHandlers = (sendEvent: SendEvent) => {
       store.set("form.autoSave", autoSave);
     },
     "form:capture:reset": () => {
-      store.delete("captureForm.values");
+      store.delete("captureForm");
     },
     "form:capture:save": (_envet, formData) => {
-      store.set("captureForm.values", formData);
+      store.set("captureForm", formData);
     },
     "form:upload:reset": () => {
-      store.delete("uploadForm.values");
+      store.delete("uploadForm");
     },
     "form:upload:save": (_envet, formData) => {
-      store.set("uploadForm.values", formData);
+      store.set("uploadForm", formData);
     },
     "upload:start": async (
       _event,

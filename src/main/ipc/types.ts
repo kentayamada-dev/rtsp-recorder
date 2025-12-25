@@ -1,8 +1,4 @@
-import type {
-  CaptureFormStore,
-  UploadFormStore,
-  FormStore,
-} from "@shared-types/form";
+import type { CaptureForm, UploadForm, FormStore } from "@shared-types/form";
 import type { createEventSender } from "./sendEvent";
 
 type Args<T> = T extends void ? [] : [T];
@@ -34,11 +30,11 @@ type Invoke = {
   };
   getCaptureForm: {
     request: void;
-    response: Partial<CaptureFormStore["values"]> | undefined;
+    response: Partial<CaptureForm> | undefined;
   };
   getUploadForm: {
     request: void;
-    response: Partial<UploadFormStore["values"]> | undefined;
+    response: Partial<UploadForm> | undefined;
   };
   showQuestionMessage: {
     request: {
@@ -51,13 +47,13 @@ type Invoke = {
 
 type RendererToMainEvents = {
   "capture:start": {
-    payload: CaptureFormStore["values"];
+    payload: CaptureForm;
   };
   "capture:stop": {
     payload: void;
   };
   "upload:start": {
-    payload: UploadFormStore["values"] & {
+    payload: UploadForm & {
       fps: number;
     };
   };
@@ -68,13 +64,13 @@ type RendererToMainEvents = {
     payload: FormStore["autoSave"];
   };
   "form:capture:save": {
-    payload: CaptureFormStore["values"];
+    payload: CaptureForm;
   };
   "form:capture:reset": {
     payload: void;
   };
   "form:upload:save": {
-    payload: UploadFormStore["values"];
+    payload: UploadForm;
   };
   "form:upload:reset": {
     payload: void;

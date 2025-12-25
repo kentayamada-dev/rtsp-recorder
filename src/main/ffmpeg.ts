@@ -1,4 +1,11 @@
-import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  readdir,
+  rmdir,
+  stat,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
 import { join, extname } from "node:path";
 import { spawn } from "node:child_process";
 import { isDev } from "./config";
@@ -8,7 +15,7 @@ import { logger } from "./log";
 import type { SendEvent } from "./ipc/types";
 import { createWriteStream } from "node:fs";
 import { relative } from "node:path";
-import type { CaptureFormStore } from "@shared-types/form";
+import type { CaptureForm } from "@shared-types/form";
 import { formatDate } from "./utils";
 
 const FFMPEG_EXE_FILE = "ffmpeg.exe";
@@ -17,6 +24,22 @@ const IMG_EXT = ".png";
 const ffmpegExePath = isDev
   ? join(app.getAppPath(), `node_modules/ffmpeg-static/${FFMPEG_EXE_FILE}`)
   : join(process.resourcesPath, FFMPEG_EXE_FILE);
+
+const deleteEmptyFolders = async (folderPath: string): Promise<void> => {
+  const files = await readdir(folderPath, { withFileTypes: true });
+
+  for (const file of files) {
+    if (file.isDirectory()) {
+      const fullPath = join(folderPath, file.name);
+      await deleteEmptyFolders(fullPath);
+
+      const remaining = await readdir(fullPath);
+      if (remaining.length === 0) {
+        await rmdir(fullPath);
+      }
+    }
+  }
+};
 
 const zipImages = (
   folderPath: string,
@@ -30,6 +53,7 @@ const zipImages = (
     output.on("close", async () => {
       try {
         await Promise.all(images.map((img) => unlink(img)));
+        await deleteEmptyFolders(folderPath);
         resolve();
       } catch (err) {
         reject(err);
@@ -46,7 +70,7 @@ const zipImages = (
   });
 };
 
-type CaptureFrame = CaptureFormStore["values"] & {
+type CaptureFrame = CaptureForm & {
   sendEvent: SendEvent;
 };
 

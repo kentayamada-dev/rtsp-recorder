@@ -5,18 +5,16 @@ import {
   type ButtonProps,
   IconButton,
 } from "@mui/material";
-import { object, string } from "zod";
+import { object, string, number } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { useEffect } from "react";
 import { PlayArrow, Pause } from "@mui/icons-material";
-import type { CaptureFormValues } from "@shared-types/form";
+import type { CaptureForm } from "@shared-types/form";
+import { CustomNumberField } from "./customNumberField";
 
 const formSchema = object({
-  rtspUrl: string().regex(
-    /^rtsp:\/\/.+[a-zA-Z0-9/]$/,
-    "Must be a valid RTSP URL",
-  ),
+  rtspUrl: string().regex(/^rtsp:\/\/.+[a-zA-Z0-9/]$/, "Invalid RTSP URL"),
   outputFolder: string().refine(
     async (folderPath) => {
       const isValid = await window.api.invoke("validateFolder", { folderPath });
@@ -24,32 +22,32 @@ const formSchema = object({
     },
     { message: "Invalid folder path" },
   ),
-  interval: string().regex(/^[1-9]\d*$/, "Must be a positive whole number"),
+  interval: number().min(1, { message: "Interval must be at least 1" }),
 });
 
-type CaptureFormProps = {
+type CaptureFormFieldProps = {
   autoSave: boolean;
   clearForm: boolean;
   handleClearForm: (fn: () => void) => void;
   isCapturing: boolean;
-  onStartCapture: (data: CaptureFormValues) => void;
+  onStartCapture: (data: CaptureForm) => void;
   onStopCapture: () => void;
 };
 
-const initialDefaults: CaptureFormValues = {
-  interval: "60",
+const initialDefaults: CaptureForm = {
+  interval: 60,
   rtspUrl: "",
   outputFolder: "",
 };
 
-export const CaptureForm = ({
+export const CaptureFormField = ({
   autoSave,
   clearForm,
   handleClearForm,
   isCapturing,
   onStartCapture,
   onStopCapture,
-}: CaptureFormProps) => {
+}: CaptureFormFieldProps) => {
   const {
     control,
     handleSubmit,
@@ -57,14 +55,14 @@ export const CaptureForm = ({
     reset,
     getValues,
     formState: { errors },
-  } = useForm<CaptureFormValues>({
+  } = useForm<CaptureForm>({
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: initialDefaults,
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit: SubmitHandler<CaptureFormValues> = async (data) => {
+  const onSubmit: SubmitHandler<CaptureForm> = async (data) => {
     if (isCapturing) {
       onStopCapture();
       return;
@@ -92,7 +90,7 @@ export const CaptureForm = ({
       const savedFormState = await window.api.invoke("getCaptureForm");
       if (!savedFormState) return;
 
-      const setIfDefined = (field: keyof CaptureFormValues, value: any) => {
+      const setIfDefined = (field: keyof CaptureForm, value: any) => {
         if (value !== undefined && value !== null && value !== "") {
           setValue(field, value);
         }
@@ -100,7 +98,7 @@ export const CaptureForm = ({
 
       setIfDefined("rtspUrl", savedFormState.rtspUrl);
       setIfDefined("outputFolder", savedFormState.outputFolder);
-      setIfDefined("interval", savedFormState.interval?.toString());
+      setIfDefined("interval", savedFormState.interval);
     };
 
     fetchData();
@@ -116,9 +114,7 @@ export const CaptureForm = ({
     if (autoSave) {
       const { interval, outputFolder, rtspUrl } = getValues();
       window.api.send("form:capture:save", {
-        interval: interval
-          ? Number(interval)
-          : Number(initialDefaults.interval),
+        interval,
         outputFolder,
         rtspUrl,
       });
@@ -157,18 +153,20 @@ export const CaptureForm = ({
                 name="interval"
                 control={control}
                 render={({ field }) => (
-                  <TextField
+                  <CustomNumberField
+                    label="Interval (seconds)"
+                    readOnly={isCapturing}
+                    onValueChange={(v) =>
+                      field.onChange(
+                        typeof v === "number" && v >= 1
+                          ? v
+                          : initialDefaults.interval,
+                      )
+                    }
                     error={Boolean(intervalErrorMessage)}
                     helperText={intervalErrorMessage || " "}
-                    variant="standard"
-                    label="Capture Interval (sec)"
-                    fullWidth
                     required
-                    slotProps={{
-                      input: {
-                        readOnly: isCapturing,
-                      },
-                    }}
+                    min={1}
                     {...field}
                   />
                 )}

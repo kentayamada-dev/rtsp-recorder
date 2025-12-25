@@ -1,7 +1,7 @@
 import { LazyLog } from "@melloware/react-logviewer";
 import { Grid, Stack, Box, Button } from "@mui/material";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { CustomToggleButton } from "./customToggleButton";
+import { CustomToggleButtonField } from "./customToggleButtonField";
 
 const AUTOUPDATE_STATE = {
   ON: "on",
@@ -111,13 +111,13 @@ export const MessagePanel = () => {
             height: "100%",
           }}
         >
-          <CustomToggleButton
+          <CustomToggleButtonField
             label="Log Type"
             value={messageType}
             options={MESSAGE_TYPES}
             onChange={handleMessageTypeChange}
           />
-          <CustomToggleButton
+          <CustomToggleButtonField
             label="Auto Update"
             value={autoUpdate}
             options={Object.values(AUTOUPDATE_STATE)}

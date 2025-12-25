@@ -15,14 +15,14 @@ const registerInvokeHandlers = (handlers: InvokeHandlerMap) => {
 export const setupInvokeHandlers = (mainWindow: BrowserWindow) => {
   registerInvokeHandlers({
     getCaptureForm: async () => {
-      const formValues = await store.get("captureForm.values");
+      const captureForm = await store.get("captureForm");
 
-      return formValues;
+      return captureForm;
     },
     getUploadForm: async () => {
-      const formValues = await store.get("uploadForm.values");
+      const uploadForm = await store.get("uploadForm");
 
-      return formValues;
+      return uploadForm;
     },
     getFormAutoSave: async () => {
       const autoSave = await store.get("form.autoSave");

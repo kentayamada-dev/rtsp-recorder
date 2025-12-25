@@ -15,12 +15,12 @@ import {
   type TabListProps,
 } from "@mui/lab";
 import { styled } from "@mui/material/styles";
-import { CaptureForm } from "./components/captureForm";
 import { SettingsPanel } from "./components/settingsPanel";
 import { MessagePanel } from "./components/messagePanel";
-import { UploadForm } from "./components/uploadForm";
 import { StatusPanel } from "./components/statusPanel";
-import type { CaptureFormValues, UploadFormValues } from "@shared-types/form";
+import type { CaptureForm, UploadForm } from "@shared-types/form";
+import { CaptureFormField } from "./components/captureFormField";
+import { UploadFormField } from "./components/uploadFormField";
 
 const TABS = {
   CAPTURE: {
@@ -82,19 +82,11 @@ export const App = () => {
     window.api.send("form:upload:reset");
   };
 
-  const handleStartCapture = (data: CaptureFormValues) => {
+  const handleStartCapture = (data: CaptureForm) => {
     setIsCapturing(true);
-    window.api.send("capture:start", {
-      rtspUrl: data.rtspUrl,
-      outputFolder: data.outputFolder,
-      interval: Number(data.interval),
-    });
+    window.api.send("capture:start", data);
     if (autoSave) {
-      window.api.send("form:capture:save", {
-        interval: Number(data.interval),
-        outputFolder: data.outputFolder,
-        rtspUrl: data.rtspUrl,
-      });
+      window.api.send("form:capture:save", data);
     }
   };
 
@@ -103,23 +95,13 @@ export const App = () => {
     setIsUploading(false);
   };
 
-  const handleStartUpload = (data: UploadFormValues) => {
+  const handleStartUpload = (data: UploadForm) => {
     setIsUploading(true);
-    const { inputFolder, secretFile, numberUpload } = data;
 
-    window.api.send("upload:start", {
-      inputFolder: inputFolder,
-      fps: 1,
-      secretFile,
-      numberUpload,
-    });
+    window.api.send("upload:start", { fps: 1, ...data });
 
     if (autoSave) {
-      window.api.send("form:upload:save", {
-        inputFolder,
-        numberUpload,
-        secretFile,
-      });
+      window.api.send("form:upload:save", data);
     }
   };
 
@@ -182,7 +164,7 @@ export const App = () => {
               </TabList>
             </Box>
             <CustomTabPanel value={TABS.CAPTURE.value} keepMounted>
-              <CaptureForm
+              <CaptureFormField
                 autoSave={autoSave}
                 clearForm={clearForm}
                 handleClearForm={handleClearForm}
@@ -192,7 +174,7 @@ export const App = () => {
               />
             </CustomTabPanel>
             <CustomTabPanel value={TABS.UPLOAD.value} keepMounted>
-              <UploadForm
+              <UploadFormField
                 autoSave={autoSave}
                 clearForm={clearForm}
                 handleClearForm={handleClearForm}
