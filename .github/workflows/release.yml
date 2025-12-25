@@ -112,7 +112,19 @@ jobs:
 
           echo "## ASAR Package Structure" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          npx asar list app.asar | grep -v "^/node_modules/" >> $GITHUB_STEP_SUMMARY
+          npx asar list app.asar | grep -v "node_modules" | awk '
+          BEGIN { print "app.asar/" }
+          {
+            depth = gsub(/\//, "/", $0)
+            indent = ""
+            for (i = 1; i < depth; i++) indent = indent "│   "
+
+            split($0, parts, "/")
+            name = parts[length(parts)]
+
+            if (name != "") print indent "├── " name
+          }
+          ' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   DeletePreviousWorkflow:
