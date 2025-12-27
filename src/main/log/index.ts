@@ -2,11 +2,10 @@ import { mkdir, appendFile } from "node:fs/promises";
 import { join } from "node:path";
 import { app } from "electron";
 import { formatDate } from "@main/utils";
-import type { LoggerOptions } from "./type";
+import type { Logger, LoggerOptions, LogLevel } from "./type";
+import { isDev } from "@main/config";
 
 const FOLDER_NAME = "Logs";
-
-type LogLevel = "info" | "error";
 
 const colors = {
   reset: "\x1b[0m",
@@ -15,7 +14,7 @@ const colors = {
   gray: "\x1b[90m",
 } as const;
 
-const createLogger = (options: LoggerOptions) => {
+const createLogger = (options: LoggerOptions): Logger => {
   const { logToTerminal } = options;
   const logsBaseDir = join(app.getPath("userData"), FOLDER_NAME);
   const { iso8601WithOffset, date } = formatDate(new Date());
@@ -26,11 +25,15 @@ const createLogger = (options: LoggerOptions) => {
     return join(datePath, `${logLevel}.log`);
   };
 
-  const write = async (logLevel: LogLevel, message: string, args: any[]) => {
+  const write = async (
+    logLevel: LogLevel,
+    message: string,
+    log: Record<string, any> | undefined,
+  ) => {
     const timestamp = iso8601WithOffset;
 
     const formatted = `[${timestamp}] [${logLevel.toUpperCase()}] ${message}${
-      args.length > 0 ? ` ${JSON.stringify(args)}` : ""
+      log ? ` ${JSON.stringify(log)}` : ""
     }`;
 
     const filePath = await getLogFilePath(logLevel);
@@ -41,7 +44,7 @@ const createLogger = (options: LoggerOptions) => {
       const coloredOutput = `${colors.gray}[${timestamp}]${
         colors.reset
       } ${color}[${logLevel.toUpperCase()}]${colors.reset} ${message}${
-        args.length > 0 ? ` ${JSON.stringify(args)}` : ""
+        log ? ` ${JSON.stringify(log)}` : ""
       }`;
 
       const consoleMethod = logLevel === "error" ? "error" : "log";
@@ -50,12 +53,11 @@ const createLogger = (options: LoggerOptions) => {
   };
 
   return {
-    info: (message: string, ...args: any[]) => write("info", message, args),
-    error: (message: string, ...args: any[]) => write("error", message, args),
-  } as const satisfies Record<
-    LogLevel,
-    (message: string, ...args: any[]) => Promise<void>
-  >;
+    info: (message: string, log?: Record<string, any>) =>
+      write("info", message, log),
+    error: (message: string, log?: Record<string, any>) =>
+      write("error", message, log),
+  };
 };
 
-export const logger = createLogger({ logToTerminal: true });
+export const logger = createLogger({ logToTerminal: isDev });

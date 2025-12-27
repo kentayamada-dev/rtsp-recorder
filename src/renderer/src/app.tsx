@@ -71,7 +71,7 @@ export const App = () => {
 
   const handleDeleteForm: ButtonProps["onClick"] = async () => {
     setClearForm(true);
-    const confirmed = await window.api.invoke("showQuestionMessage", {
+    const confirmed = await window.api.invoke("showQuestionDialog", {
       title: "Confirm Delete",
       message: "Are you sure you want to delete?",
     });

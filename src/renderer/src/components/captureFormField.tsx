@@ -17,7 +17,10 @@ const formSchema = object({
   rtspUrl: string().regex(/^rtsp:\/\/.+[a-zA-Z0-9/]$/, "Invalid RTSP URL"),
   outputFolder: string().refine(
     async (folderPath) => {
-      const isValid = await window.api.invoke("validateFolder", { folderPath });
+      const isValid = await window.api.invoke("validatePath", {
+        path: folderPath,
+        type: "folder",
+      });
       return isValid;
     },
     { message: "Invalid folder path" },
@@ -71,7 +74,9 @@ export const CaptureFormField = ({
   };
 
   const handleSelectFolder: ButtonProps["onClick"] = async () => {
-    const selectedFolder = await window.api.invoke("selectFolder");
+    const selectedFolder = await window.api.invoke("selectDialog", {
+      type: "folder",
+    });
     if (selectedFolder) {
       setValue("outputFolder", selectedFolder, {
         shouldValidate: true,

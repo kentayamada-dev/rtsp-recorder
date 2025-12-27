@@ -36,6 +36,7 @@
     "electron.vite.config.ts",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/shared/form.d.ts"
+    "src/shared/form.ts",
+    "src/shared/types.ts"
   ]
 }

@@ -1,5 +1,3 @@
-type StrictOmit<T, K extends keyof T> = Omit<T, K>;
-
 type CaptureForm = {
   rtspUrl: string;
   outputFolder: string;

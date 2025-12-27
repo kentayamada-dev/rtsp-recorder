@@ -1,7 +1,6 @@
 import { BrowserWindow, dialog, ipcMain } from "electron";
 import { store } from "@main/store";
-import { isDefined } from "@main/utils";
-import { readFile, stat } from "fs/promises";
+import { isDefined, validatePath } from "@main/utils";
 import type { InvokeHandlerMap } from "./types";
 
 const registerInvokeHandlers = (handlers: InvokeHandlerMap) => {
@@ -14,43 +13,44 @@ const registerInvokeHandlers = (handlers: InvokeHandlerMap) => {
 
 export const setupInvokeHandlers = (mainWindow: BrowserWindow) => {
   registerInvokeHandlers({
-    getCaptureForm: async () => {
-      const captureForm = await store.get("captureForm");
+    getCaptureForm: () => {
+      const captureForm = store.get("captureForm");
 
       return captureForm;
     },
-    getUploadForm: async () => {
-      const uploadForm = await store.get("uploadForm");
+    getUploadForm: () => {
+      const uploadForm = store.get("uploadForm");
 
       return uploadForm;
     },
-    getFormAutoSave: async () => {
-      const autoSave = await store.get("form.autoSave");
+    getFormAutoSave: () => {
+      const autoSave = store.get("form.autoSave");
 
       return autoSave;
     },
-    selectFolder: async () => {
+    selectDialog: async (_event, { type }) => {
+      let path: string | undefined = undefined;
+
       try {
-        const result = await dialog.showOpenDialog(mainWindow, {
-          properties: ["openDirectory"],
-        });
-        return isDefined(result.filePaths[0]);
-      } catch (err) {
-        return null;
+        path = (
+          await dialog.showOpenDialog(mainWindow, {
+            ...(type === "folder"
+              ? {
+                  properties: ["openDirectory"],
+                }
+              : {
+                  properties: ["openFile"],
+                  filters: [{ name: "JSON Files", extensions: ["json"] }],
+                }),
+          })
+        ).filePaths[0];
+
+        return isDefined(path);
+      } catch (error) {
+        return path;
       }
     },
-    selectJsonFile: async () => {
-      try {
-        const result = await dialog.showOpenDialog(mainWindow, {
-          properties: ["openFile"],
-          filters: [{ name: "JSON Files", extensions: ["json"] }],
-        });
-        return isDefined(result.filePaths[0]);
-      } catch (err) {
-        return null;
-      }
-    },
-    showQuestionMessage: async (_event, { message, title }) => {
+    showQuestionDialog: async (_event, { message, title }) => {
       const result = await dialog.showMessageBox(mainWindow, {
         type: "question",
         title,
@@ -59,26 +59,9 @@ export const setupInvokeHandlers = (mainWindow: BrowserWindow) => {
       });
       return result.response === 1;
     },
-    validateFolder: async (_event, { folderPath }) => {
-      try {
-        const stats = await stat(folderPath);
-        return stats.isDirectory();
-      } catch (error) {
-        return false;
-      }
-    },
-    validateJsonFile: async (_event, { filePath }) => {
-      try {
-        const stats = await stat(filePath);
-        if (!stats.isFile()) return false;
-        if (!filePath.endsWith(".json")) return false;
-
-        const fileContent = await readFile(filePath, "utf-8");
-        JSON.parse(fileContent);
-        return true;
-      } catch (error) {
-        return false;
-      }
+    validatePath: (_event, { path, type }) => {
+      const isValid = validatePath(path, type);
+      return isValid;
     },
   });
 };

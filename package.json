@@ -22,7 +22,8 @@
     "build": "pnpm typecheck && electron-vite build",
     "build:prev": "pnpm build && electron-builder --dir",
     "build:prod": "pnpm build && electron-builder",
-    "prebuild": "rimraf dist out"
+    "prebuild": "rimraf dist out",
+    "test": "vitest"
   },
   "dependencies": {
     "googleapis": "169.0.0"
@@ -39,12 +40,10 @@
     "@mui/icons-material": "7.3.6",
     "@mui/lab": "7.0.1-beta.20",
     "@mui/material": "7.3.6",
-    "@types/archiver": "7.0.0",
     "@types/node": "25.0.2",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.2",
-    "archiver": "7.0.1",
     "babel-plugin-react-compiler": "1.0.0",
     "electron": "39.2.7",
     "electron-builder": "26.0.12",
@@ -59,6 +58,8 @@
     "rimraf": "6.1.2",
     "typescript": "5.9.3",
     "vite": "npm:rolldown-vite@7.2.11",
+    "vite-tsconfig-paths": "6.0.3",
+    "vitest": "4.0.16",
     "zod": "4.2.1"
   },
   "engines": {

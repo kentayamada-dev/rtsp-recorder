@@ -1,9 +1,14 @@
-let isQuitting = false;
+const createQuittingState = () => {
+  let isQuitting = false;
 
-export const getIsQuitting = (): boolean => {
-  return isQuitting;
+  return {
+    get: (): boolean => isQuitting,
+    set: (value: boolean): void => {
+      isQuitting = value;
+    },
+  };
 };
 
-export const setIsQuitting = (value: boolean): void => {
-  isQuitting = value;
-};
+const quitting = createQuittingState();
+
+export { quitting };

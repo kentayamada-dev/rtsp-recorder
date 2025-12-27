@@ -1,10 +1,18 @@
-import { ipcMain } from "electron";
+import { app, ipcMain } from "electron";
 import type { EventHandlerMap, SendEvent } from "./types";
 import { store } from "@main/store";
 import cron, { type ScheduledTask } from "node-cron";
-import { captureFrame, createVideo } from "@main/ffmpeg";
-import { formatDate, isDefined } from "@main/utils";
-import { uploadVideo } from "@main/youtube";
+import {
+  deleteFiles,
+  formatDate,
+  generateCronSchedule,
+  getFilesByExtension,
+} from "@main/utils";
+import { join } from "node:path";
+import { isDev } from "@main/config";
+import { createFFmpeg } from "@main/ffmpeg";
+import { createYouTube } from "@main/youtube";
+import { logger } from "@main/log";
 
 const registerEventHandlers = (handlers: EventHandlerMap) => {
   (Object.keys(handlers) as Array<keyof EventHandlerMap>).forEach((channel) => {
@@ -15,35 +23,37 @@ const registerEventHandlers = (handlers: EventHandlerMap) => {
 let captureInterval: ReturnType<typeof setInterval> | null = null;
 let scheduledUploadTask: ScheduledTask | null = null;
 
-const generateCronSchedule = (frequency: number): string => {
-  const schedules: { [key: number]: number[] } = {
-    1: [0], // midnight
-    2: [0, 12], // midnight, noon
-    3: [0, 8, 16], // every 8 hours
-    4: [0, 6, 12, 18], // every 6 hours
-    5: [0, 5, 10, 15, 20], // every 5 hours
-    6: [0, 4, 8, 12, 16, 20], // every 4 hours
-  };
-
-  const hours = isDefined(schedules[frequency]);
-  const hourString = hours.join(",");
-
-  return `0 ${hourString} * * *`;
-};
-
 export const setupEventHandlers = (sendEvent: SendEvent) => {
+  const ffmpegExeFile = "ffmpeg.exe";
+
+  const ffmpegExe = isDev
+    ? join(app.getAppPath(), `node_modules/ffmpeg-static/${ffmpegExeFile}`)
+    : join(process.resourcesPath, ffmpegExeFile);
+
+  const ffmpeg = createFFmpeg(ffmpegExe, logger);
+
   registerEventHandlers({
-    "capture:start": (_event, data) => {
-      captureInterval = captureFrame({
-        ...data,
-        sendEvent,
+    "capture:start": (_event, { interval, ...rest }) => {
+      sendEvent("capture:message", {
+        message: "Capture started",
       });
+      captureInterval = setInterval(async () => {
+        await ffmpeg.captureFrame({
+          ...rest,
+          onCapture: (filename) => {
+            sendEvent("capture:message", { message: `Captured: ${filename}` });
+          },
+        });
+      }, interval * 1000);
     },
     "capture:stop": () => {
       if (captureInterval) {
         clearInterval(captureInterval);
         captureInterval = null;
       }
+      sendEvent("capture:message", {
+        message: "Capture stopped",
+      });
     },
     "form:autosave": (_event, autoSave) => {
       store.set("form.autoSave", autoSave);
@@ -69,13 +79,50 @@ export const setupEventHandlers = (sendEvent: SendEvent) => {
         async () => {
           const today = new Date();
           const videoTitle = formatDate(today).second;
-          const { outputFilePath } = await createVideo(
+          const images = await getFilesByExtension(inputFolder, ".png");
+          if (images.length === 0) {
+            throw new Error("No images found to create video");
+          }
+          sendEvent("capture:message", {
+            message: "Creating video...",
+          });
+          const { videoFile } = await ffmpeg.createVideo(
             inputFolder,
             fps,
-            sendEvent,
-            videoTitle,
+            join(app.getPath("userData"), "images_list.tmp"),
+            images,
+            (progress) => {
+              sendEvent("capture:progress", { progress });
+              sendEvent("capture:message", {
+                message: `Creating video: ${progress}% complete`,
+              });
+            },
           );
-          await uploadVideo(secretFile, videoTitle, outputFilePath, sendEvent);
+          sendEvent("capture:message", {
+            message: `Video created: ${videoFile}`,
+          });
+          await deleteFiles(images);
+          sendEvent("upload:message", {
+            message: "Uploading video...",
+          });
+          const youtube = createYouTube(
+            join(app.getPath("userData"), "token.json"),
+            secretFile,
+            logger,
+          );
+          const videoId = await youtube.uploadVideo(
+            videoTitle,
+            videoFile,
+            (progress) => {
+              sendEvent("upload:progress", { progress });
+              sendEvent("upload:message", {
+                message: `Upload video: ${progress}% complete`,
+              });
+            },
+          );
+          sendEvent("upload:message", {
+            message: `Uploaded: https://youtu.be/${videoId}`,
+          });
         },
       );
     },

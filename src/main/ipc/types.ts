@@ -4,29 +4,22 @@ import type { createEventSender } from "./sendEvent";
 type Args<T> = T extends void ? [] : [T];
 
 type Invoke = {
-  selectFolder: {
-    request: void;
-    response: string | null;
-  };
-  selectJsonFile: {
-    request: void;
-    response: string | null;
-  };
   getFormAutoSave: {
     request: void;
     response: boolean | undefined;
   };
-  validateFolder: {
+  validatePath: {
     request: {
-      folderPath: string;
+      path: string;
+      type: "folder" | "json";
     };
     response: boolean;
   };
-  validateJsonFile: {
+  selectDialog: {
     request: {
-      filePath: string;
+      type: "folder" | "json";
     };
-    response: boolean;
+    response: string | undefined;
   };
   getCaptureForm: {
     request: void;
@@ -36,7 +29,7 @@ type Invoke = {
     request: void;
     response: Partial<UploadForm> | undefined;
   };
-  showQuestionMessage: {
+  showQuestionDialog: {
     request: {
       title: string;
       message: string;
@@ -103,7 +96,7 @@ type MainToRendererEvents = {
 type InvokeHandler<K extends keyof Invoke> = (
   event: Electron.IpcMainInvokeEvent,
   payload: Invoke[K]["request"],
-) => Promise<Invoke[K]["response"]> | Invoke[K]["response"];
+) => Promise<Invoke[K]["response"]>;
 
 type InvokeHandlerMap = {
   [K in keyof Invoke]: InvokeHandler<K>;

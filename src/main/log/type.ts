@@ -2,4 +2,11 @@ type LoggerOptions = {
   logToTerminal: boolean;
 };
 
-export type { LoggerOptions };
+type LogLevel = "info" | "error";
+
+type Logger = Record<
+  LogLevel,
+  (message: string, ...args: any[]) => Promise<void>
+>;
+
+export type { LoggerOptions, Logger, LogLevel };

@@ -1,7 +1,7 @@
 import { app, BrowserWindow, shell } from "electron";
 import { join } from "node:path";
 import { getEnv, isDefined } from "@main/utils";
-import { getIsQuitting } from "@main/state";
+import { quitting } from "@main/state";
 import { isDev } from "@main/config";
 import { store } from "@main/store";
 import { setupAutoUpdater } from "@main/updater";
@@ -38,7 +38,7 @@ const createMainWindow = async (): Promise<BrowserWindow> => {
   });
 
   mainWindow.on("close", async (e) => {
-    const isQuitting = getIsQuitting();
+    const isQuitting = quitting.get();
     if (!mainWindow) return;
 
     if (isQuitting) {

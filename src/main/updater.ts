@@ -1,6 +1,5 @@
 import { BrowserWindow, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
-import { logger } from "./log";
 
 const UPDATE_NOW = 0;
 
@@ -35,8 +34,7 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
     }
   });
 
-  autoUpdater.on("error", async (error) => {
-    logger.error("Auto-update error:", error);
+  autoUpdater.on("error", async () => {
     await dialog.showMessageBox(mainWindow, {
       type: "error",
       title: "Update Error",
