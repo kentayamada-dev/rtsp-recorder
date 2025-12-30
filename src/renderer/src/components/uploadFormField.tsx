@@ -1,6 +1,5 @@
 import {
   TextField,
-  Grid,
   Button,
   type ButtonProps,
   IconButton,
@@ -13,15 +12,33 @@ import {
   styled,
   tooltipClasses,
   type TooltipProps,
+  Box,
+  Stack,
 } from "@mui/material";
-import { object, string, number } from "zod";
+import { string, number, strictObject, type ZodType } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { useEffect } from "react";
-import type { UploadForm } from "@shared-types/form";
 import { Info, Pause, PlayArrow } from "@mui/icons-material";
+import type { FormStore } from "@shared-types/form";
+import { onValid } from "@renderer/utils";
+import { CustomNumberField } from "./customNumberField";
 
-const formSchema = object({
+const StyledForm = styled("form")(() => ({
+  height: "100%",
+}));
+
+type FormSchema = FormStore["uploadForm"];
+
+type UploadFormFieldProps = {
+  clearForm: boolean;
+  handleClearForm: (fn: () => void) => void;
+  isUploading: boolean;
+  onStartUpload: (data: FormSchema) => void;
+  onStopUpload: () => void;
+};
+
+const formSchema = strictObject({
   inputFolder: string().refine(
     async (folderPath) => {
       const isValid = await window.api.invoke("validatePath", {
@@ -32,32 +49,14 @@ const formSchema = object({
     },
     { message: "Invalid folder path" },
   ),
-  secretFile: string().refine(
-    async (filePath) => {
-      const isValid = await window.api.invoke("validatePath", {
-        path: filePath,
-        type: "json",
-      });
-      return isValid;
-    },
-    { message: "Invalid file path" },
-  ),
   numberUpload: number().min(1).max(6),
-});
+  fps: number().min(1),
+}) satisfies ZodType<FormSchema>;
 
-type UploadFormFieldProps = {
-  autoSave: boolean;
-  clearForm: boolean;
-  handleClearForm: (fn: () => void) => void;
-  isUploading: boolean;
-  onStartUpload: (data: UploadForm) => void;
-  onStopUpload: () => void;
-};
-
-const initialDefaults: UploadForm = {
-  secretFile: "",
+const initialDefaults: FormSchema = {
   inputFolder: "",
   numberUpload: 1,
+  fps: 1,
 };
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -73,7 +72,6 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 export const UploadFormField = ({
-  autoSave,
   clearForm,
   handleClearForm,
   isUploading,
@@ -87,14 +85,14 @@ export const UploadFormField = ({
     reset,
     getValues,
     formState: { errors },
-  } = useForm<UploadForm>({
+  } = useForm<FormSchema>({
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: initialDefaults,
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit: SubmitHandler<UploadForm> = async (data) => {
+  const onSubmit: SubmitHandler<FormSchema> = async (data) => {
     if (isUploading) {
       onStopUpload();
       return;
@@ -113,42 +111,25 @@ export const UploadFormField = ({
     }
   };
 
-  const handleSecretFile: ButtonProps["onClick"] = async () => {
-    const selectedFile = await window.api.invoke("selectDialog", {
-      type: "json",
-    });
-    if (selectedFile) {
-      setValue("secretFile", selectedFile, {
-        shouldValidate: true,
-      });
-    }
-  };
-
   const inputFolderErrorMessage = errors.inputFolder?.message;
   const numberUploadErrorMessage = errors.numberUpload?.message;
-  const secretFileErrorMessage = errors.secretFile?.message;
+  const fpsErrorMessage = errors.fps?.message;
 
   useEffect(() => {
-    const controller = new AbortController();
-
     const fetchData = async () => {
       const savedFormState = await window.api.invoke("getUploadForm");
       if (!savedFormState) return;
 
-      const setIfDefined = (field: keyof UploadForm, value: any) => {
-        if (value !== undefined && value !== null && value !== "") {
-          setValue(field, value);
-        }
-      };
-
-      setIfDefined("inputFolder", savedFormState.inputFolder);
-      setIfDefined("numberUpload", savedFormState.numberUpload);
-      setIfDefined("secretFile", savedFormState.secretFile);
+      onValid(savedFormState.inputFolder, (val) =>
+        setValue("inputFolder", val),
+      );
+      onValid(savedFormState.numberUpload, (val) =>
+        setValue("numberUpload", val),
+      );
+      onValid(savedFormState.fps, (val) => setValue("fps", val));
     };
 
     fetchData();
-
-    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -156,151 +137,177 @@ export const UploadFormField = ({
   }, [clearForm]);
 
   useEffect(() => {
-    if (autoSave) {
-      const { inputFolder, numberUpload, secretFile } = getValues();
-      window.api.send("form:upload:save", {
-        numberUpload,
-        inputFolder,
-        secretFile,
-      });
-    }
-  }, [autoSave]);
+    const { inputFolder, numberUpload, fps } = getValues();
+    window.api.send("form:upload", {
+      numberUpload,
+      inputFolder,
+      fps,
+    });
+  }, []);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Grid container spacing={4}>
-        <Grid size={9}>
-          <Grid container spacing={3}>
-            <Grid size={11}>
-              <Controller
-                control={control}
-                name="numberUpload"
-                render={({ field }) => (
-                  <FormControl
-                    fullWidth
-                    required
-                    variant="standard"
-                    error={Boolean(numberUploadErrorMessage)}
-                  >
-                    <InputLabel id="numberUpload-label">
-                      Upload Times
-                    </InputLabel>
-                    <Select
-                      labelId="numberUpload-label"
-                      label="Upload Times"
-                      inputProps={{ readOnly: isUploading }}
-                      {...field}
-                    >
-                      {Array.from({ length: 6 }, (_, i) => (
-                        <MenuItem key={i + 1} value={i + 1}>
-                          {i + 1}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    <FormHelperText>
-                      {numberUploadErrorMessage || " "}
-                    </FormHelperText>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-            <Grid
-              size={1}
+    <StyledForm onSubmit={handleSubmit(onSubmit)}>
+      <Stack
+        direction="row"
+        sx={{
+          height: "100%",
+        }}
+      >
+        <Box
+          sx={{
+            width: "70%",
+          }}
+        >
+          <Stack
+            sx={{
+              height: "100%",
+              justifyContent: "space-between",
+            }}
+          >
+            <Stack
+              direction="row"
               sx={{
-                display: "flex",
-                justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <HtmlTooltip
-                placement="top"
-                title={
-                  <>
-                    <ul
-                      style={{ margin: 0, paddingLeft: 10, paddingRight: 10 }}
+              <Box
+                sx={{
+                  width: "90%",
+                }}
+              >
+                <Controller
+                  control={control}
+                  name="numberUpload"
+                  render={({ field }) => (
+                    <FormControl
+                      fullWidth
+                      required
+                      variant="standard"
+                      error={Boolean(numberUploadErrorMessage)}
                     >
-                      <li>1 = Daily at midnight</li>
-                      <li>2 = Twice daily (midnight, noon)</li>
-                      <li>3 = Every 8 hours</li>
-                      <li>4 = Every 6 hours</li>
-                      <li>5 = Every 5 hours</li>
-                      <li>6 = Every 4 hours</li>
-                    </ul>
-                  </>
-                }
+                      <InputLabel id="numberUpload-label">
+                        Upload Times
+                      </InputLabel>
+                      <Select
+                        labelId="numberUpload-label"
+                        label="Upload Times"
+                        inputProps={{ readOnly: isUploading }}
+                        {...field}
+                      >
+                        {Array.from({ length: 6 }, (_, i) => (
+                          <MenuItem key={i + 1} value={i + 1}>
+                            {i + 1}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <FormHelperText>
+                        {numberUploadErrorMessage || " "}
+                      </FormHelperText>
+                    </FormControl>
+                  )}
+                />
+              </Box>
+              <Box
+                sx={{
+                  width: "10%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
-                <Info />
-              </HtmlTooltip>
-            </Grid>
-            <Grid size={9}>
-              <Controller
-                name="inputFolder"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    error={Boolean(inputFolderErrorMessage)}
-                    helperText={inputFolderErrorMessage || " "}
-                    variant="standard"
-                    fullWidth
-                    required
-                    label="Input Folder"
-                    slotProps={{
-                      input: {
-                        readOnly: isUploading,
-                      },
-                    }}
-                    {...field}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={3} alignSelf="center">
-              <Button
-                disabled={isUploading}
-                fullWidth
-                variant="contained"
-                onClick={handleSelectFolder}
+                <HtmlTooltip
+                  title={
+                    <>
+                      <ul
+                        style={{ margin: 0, paddingLeft: 10, paddingRight: 10 }}
+                      >
+                        <li>1 = Daily at midnight</li>
+                        <li>2 = Twice daily (midnight, noon)</li>
+                        <li>3 = Every 8 hours</li>
+                        <li>4 = Every 6 hours</li>
+                        <li>5 = Every 5 hours</li>
+                        <li>6 = Every 4 hours</li>
+                      </ul>
+                    </>
+                  }
+                >
+                  <Info />
+                </HtmlTooltip>
+              </Box>
+            </Stack>
+            <Controller
+              name="fps"
+              control={control}
+              render={({ field }) => (
+                <CustomNumberField
+                  label="FPS"
+                  readOnly={isUploading}
+                  onValueChange={(v) =>
+                    field.onChange(
+                      typeof v === "number" && v >= 1 ? v : initialDefaults.fps,
+                    )
+                  }
+                  error={Boolean(fpsErrorMessage)}
+                  helperText={fpsErrorMessage || " "}
+                  required
+                  min={1}
+                  {...field}
+                />
+              )}
+            />
+            <Stack
+              direction="row"
+              sx={{
+                alignItems: "center",
+              }}
+              spacing={2}
+            >
+              <Box
+                sx={{
+                  width: "80%",
+                }}
               >
-                Browse
-              </Button>
-            </Grid>
-            <Grid size={9}>
-              <Controller
-                name="secretFile"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    error={Boolean(secretFileErrorMessage)}
-                    helperText={secretFileErrorMessage || " "}
-                    variant="standard"
-                    fullWidth
-                    required
-                    label="Secret File"
-                    slotProps={{
-                      input: {
-                        readOnly: isUploading,
-                      },
-                    }}
-                    {...field}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={3} alignSelf="center">
-              <Button
-                disabled={isUploading}
-                fullWidth
-                variant="contained"
-                onClick={handleSecretFile}
+                <Controller
+                  name="inputFolder"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      error={Boolean(inputFolderErrorMessage)}
+                      helperText={inputFolderErrorMessage || " "}
+                      variant="standard"
+                      fullWidth
+                      required
+                      label="Input Folder"
+                      slotProps={{
+                        input: {
+                          readOnly: isUploading,
+                        },
+                      }}
+                      {...field}
+                    />
+                  )}
+                />
+              </Box>
+              <Box
+                sx={{
+                  width: "20%",
+                }}
               >
-                Browse
-              </Button>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid
-          size={3}
+                <Button
+                  disabled={isUploading}
+                  fullWidth
+                  variant="contained"
+                  onClick={handleSelectFolder}
+                >
+                  Browse
+                </Button>
+              </Box>
+            </Stack>
+          </Stack>
+        </Box>
+        <Box
           sx={{
+            width: "30%",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -330,8 +337,8 @@ export const UploadFormField = ({
               />
             )}
           </IconButton>
-        </Grid>
-      </Grid>
-    </form>
+        </Box>
+      </Stack>
+    </StyledForm>
   );
 };

@@ -35,7 +35,6 @@
   "include": [
     "src/renderer/**/*",
     "src/shared/global.d.ts",
-    "src/shared/form.ts",
-    "src/shared/types.ts"
+    "src/shared/form.ts"
   ]
 }

@@ -125,7 +125,27 @@ const generateCronSchedule = (frequency: number): string => {
   return `0 ${hourString} * * *`;
 };
 
+const handleError = (error: unknown) => {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    };
+  }
+  return {
+    message: String(error),
+    stack: undefined,
+    name: "Unknown",
+  };
+};
+
+const toMutable = <T>(readonly: readonly T[]): T[] => {
+  return [...readonly];
+};
+
 export {
+  toMutable,
   getEnv,
   isDefined,
   formatDate,
@@ -133,4 +153,5 @@ export {
   deleteFiles,
   validatePath,
   generateCronSchedule,
+  handleError,
 };

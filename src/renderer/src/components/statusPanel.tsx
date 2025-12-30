@@ -1,4 +1,4 @@
-import { Box, Grid, Stack, CircularProgress, Typography } from "@mui/material";
+import { Box, Stack, CircularProgress, Typography } from "@mui/material";
 import { Autorenew, Pause } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 
@@ -35,7 +35,7 @@ const CircularProgressWithLabel = ({ value }: { value: number }) => {
         <Typography
           variant="caption"
           component="div"
-          sx={{ color: "text.secondary", fontSize: "20px" }}
+          sx={{ color: "text.secondary", fontSize: "15px" }}
         >{`${Math.round(value)}%`}</Typography>
       </Box>
     </Box>
@@ -73,9 +73,25 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
   }, []);
 
   return (
-    <Grid container spacing={7}>
-      <Grid size={6}>
-        <Stack direction="row" spacing={1}>
+    <Stack
+      sx={{
+        height: "100%",
+        justifyContent: "space-around",
+      }}
+    >
+      <Stack
+        direction="row"
+        sx={{
+          width: "100%",
+          justifyContent: "space-around",
+        }}
+      >
+        <Stack
+          direction="row"
+          sx={{
+            width: "250px",
+          }}
+        >
           <Box
             sx={{
               height: "80px",
@@ -112,9 +128,12 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
             Auto Capture
           </Typography>
         </Stack>
-      </Grid>
-      <Grid size={6}>
-        <Stack direction="row" spacing={1}>
+        <Stack
+          direction="row"
+          sx={{
+            width: "250px",
+          }}
+        >
           <Box
             sx={{
               height: "80px",
@@ -133,7 +152,14 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
                 }}
               />
             ) : (
-              <CircularProgressWithLabel value={captureProgress} />
+              <Box
+                sx={{
+                  width: "80%",
+                  height: "80%",
+                }}
+              >
+                <CircularProgressWithLabel value={captureProgress} />
+              </Box>
             )}
           </Box>
           <Typography
@@ -145,9 +171,20 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
             Create Video
           </Typography>
         </Stack>
-      </Grid>
-      <Grid size={6}>
-        <Stack direction="row" spacing={1}>
+      </Stack>
+      <Stack
+        direction="row"
+        sx={{
+          width: "100%",
+          justifyContent: "space-around",
+        }}
+      >
+        <Stack
+          direction="row"
+          sx={{
+            width: "250px",
+          }}
+        >
           <Box
             sx={{
               height: "80px",
@@ -184,9 +221,12 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
             Auto Upload
           </Typography>
         </Stack>
-      </Grid>
-      <Grid size={6}>
-        <Stack direction="row" spacing={1}>
+        <Stack
+          direction="row"
+          sx={{
+            width: "250px",
+          }}
+        >
           <Box
             sx={{
               height: "80px",
@@ -205,7 +245,14 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
                 }}
               />
             ) : (
-              <CircularProgressWithLabel value={uploadProgress} />
+              <Box
+                sx={{
+                  width: "80%",
+                  height: "80%",
+                }}
+              >
+                <CircularProgressWithLabel value={uploadProgress} />
+              </Box>
             )}
           </Box>
           <Typography
@@ -217,7 +264,7 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
             Upload YouYube
           </Typography>
         </Stack>
-      </Grid>
-    </Grid>
+      </Stack>
+    </Stack>
   );
 };

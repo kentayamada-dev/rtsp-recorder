@@ -1,5 +1,5 @@
 import { session, type BrowserWindow } from "electron";
-import { isDev } from "./config";
+import { config } from "./config";
 
 const ALLOWED_PERMISSIONS = [""];
 const ALLOWED_ORIGINS = [""];
@@ -30,7 +30,7 @@ export const setupSecurity = (mainWindow: BrowserWindow) => {
           "Content-Security-Policy": [
             [
               "default-src 'self';",
-              `script-src 'self'${isDev ? " 'unsafe-inline'" : ""};`,
+              `script-src 'self'${config["dev"] ? " 'unsafe-inline'" : ""};`,
               "style-src 'self' 'unsafe-inline';",
               "img-src 'self' data:;",
               "object-src 'none';",

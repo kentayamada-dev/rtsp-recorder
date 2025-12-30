@@ -36,7 +36,7 @@
     "electron.vite.config.ts",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/shared/form.ts",
-    "src/shared/types.ts"
-  ]
+    "src/shared/form.ts"
+  ],
+  "exclude": ["**/*.test.ts"]
 }

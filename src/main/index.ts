@@ -37,7 +37,7 @@ const initializeApp = async () => {
   createMenu();
   createTray(mainWindow);
   setupInvokeHandlers(mainWindow);
-  setupEventHandlers(sendEvent);
+  setupEventHandlers(sendEvent, mainWindow);
 };
 
 initializeApp();

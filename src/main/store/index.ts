@@ -1,14 +1,14 @@
-import { app } from "electron";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { FormStore, CaptureForm, UploadForm } from "@shared-types/form";
 import { isDefined } from "@main/utils";
 import type { PathKeys, PathValue } from "./type";
-
-const FILE_NAME = "config.json";
+import { config } from "@main/config";
+import { app } from "electron";
+import type { FormStore, GoogleStore } from "@shared-types/form";
 
 const createStore = <Schema extends Record<string, any>>() => {
-  const filePath = join(app.getPath("userData"), FILE_NAME);
+  const appData = app.getPath("userData");
+  const filePath = join(appData, config["files"]["config"]);
   let data: Partial<Schema> = {};
 
   const load = async () => {
@@ -107,16 +107,13 @@ const createStore = <Schema extends Record<string, any>>() => {
   };
 };
 
-type StoreSchema = {
+export const store = createStore<{
   form: FormStore;
-  captureForm: CaptureForm;
-  uploadForm: UploadForm;
+  google: GoogleStore;
   window: {
     x: number;
     y: number;
     width: number;
     height: number;
   };
-};
-
-export const store = createStore<StoreSchema>();
+}>();

@@ -1,12 +1,29 @@
-import type { CaptureForm, UploadForm, FormStore } from "@shared-types/form";
+import type { FormStore, GoogleStore } from "@shared-types/form";
 import type { createEventSender } from "./sendEvent";
+import type { MessageBoxOptions, MessageBoxReturnValue } from "electron";
 
 type Args<T> = T extends void ? [] : [T];
 
 type Invoke = {
-  getFormAutoSave: {
+  getConfigFile: {
     request: void;
-    response: boolean | undefined;
+    response: string;
+  };
+  getGoogleSheetEnabled: {
+    request: void;
+    response: GoogleStore["sheet"]["enabled"] | undefined;
+  };
+  getGoogleSheetValues: {
+    request: void;
+    response: Partial<GoogleStore["sheet"]["values"]> | undefined;
+  };
+  getGoogleSecretFile: {
+    request: void;
+    response: Partial<GoogleStore["secretFile"]> | undefined;
+  };
+  generateGoogleToken: {
+    request: void;
+    response: { success: boolean; message: string };
   };
   validatePath: {
     request: {
@@ -23,50 +40,53 @@ type Invoke = {
   };
   getCaptureForm: {
     request: void;
-    response: Partial<CaptureForm> | undefined;
+    response: Partial<FormStore["captureForm"]> | undefined;
   };
   getUploadForm: {
     request: void;
-    response: Partial<UploadForm> | undefined;
+    response: Partial<FormStore["uploadForm"]> | undefined;
   };
-  showQuestionDialog: {
-    request: {
-      title: string;
-      message: string;
-    };
-    response: boolean;
+  showDialog: {
+    request: MessageBoxOptions;
+    response: MessageBoxReturnValue;
   };
 };
 
 type RendererToMainEvents = {
   "capture:start": {
-    payload: CaptureForm;
+    payload: FormStore["captureForm"];
   };
   "capture:stop": {
     payload: void;
   };
   "upload:start": {
-    payload: UploadForm & {
-      fps: number;
-    };
+    payload: FormStore["uploadForm"];
   };
   "upload:stop": {
     payload: void;
   };
-  "form:autosave": {
-    payload: FormStore["autoSave"];
+  "form:capture": {
+    payload: FormStore["captureForm"];
   };
-  "form:capture:save": {
-    payload: CaptureForm;
+  "form:upload": {
+    payload: FormStore["uploadForm"];
   };
-  "form:capture:reset": {
+  "google:secretFile": {
+    payload: GoogleStore["secretFile"];
+  };
+  "google:sheet:enabled": {
+    payload: GoogleStore["sheet"]["enabled"];
+  };
+  "google:sheet:values": {
+    payload: GoogleStore["sheet"]["values"];
+  };
+  reset: {
     payload: void;
   };
-  "form:upload:save": {
-    payload: UploadForm;
-  };
-  "form:upload:reset": {
-    payload: void;
+  "file:open": {
+    payload: {
+      filePath: string;
+    };
   };
 };
 
@@ -96,7 +116,7 @@ type MainToRendererEvents = {
 type InvokeHandler<K extends keyof Invoke> = (
   event: Electron.IpcMainInvokeEvent,
   payload: Invoke[K]["request"],
-) => Promise<Invoke[K]["response"]>;
+) => Promise<Invoke[K]["response"]> | Invoke[K]["response"];
 
 type InvokeHandlerMap = {
   [K in keyof Invoke]: InvokeHandler<K>;

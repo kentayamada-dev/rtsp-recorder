@@ -5,7 +5,7 @@ import {
   Tab,
   Paper,
   type ButtonProps,
-  type SwitchProps,
+  styled,
 } from "@mui/material";
 import {
   TabContext,
@@ -14,52 +14,51 @@ import {
   type TabPanelProps,
   type TabListProps,
 } from "@mui/lab";
-import { styled } from "@mui/material/styles";
 import { SettingsPanel } from "./components/settingsPanel";
 import { MessagePanel } from "./components/messagePanel";
 import { StatusPanel } from "./components/statusPanel";
-import type { CaptureForm, UploadForm } from "@shared-types/form";
 import { CaptureFormField } from "./components/captureFormField";
 import { UploadFormField } from "./components/uploadFormField";
+import type { FormStore, GoogleStore } from "@shared-types/form";
 
 const TABS = {
   CAPTURE: {
-    value: "capture",
+    value: 0,
     label: "Capture",
   },
   UPLOAD: {
-    value: "upload",
+    value: 1,
     label: "Upload",
   },
   STATUS: {
-    value: "status",
+    value: 2,
     label: "Status",
   },
   SETTINGS: {
-    value: "settings",
+    value: 3,
     label: "Setting",
   },
 } as const;
 
 const CustomTabPanel = styled(TabPanel)<TabPanelProps>(() => ({
   padding: 0,
+  height: "100%",
 }));
 
 export const App = () => {
   const [tabValue, setTabValue] = useState(TABS.CAPTURE.value);
-  const [autoSave, setAutoSave] = useState(false);
   const [clearForm, setClearForm] = useState<boolean>(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [googleSheetEnabled, setGoogleSheetEnabled] = useState(false);
 
   const handleTabChange: TabListProps["onChange"] = (_event, newValue) => {
     setTabValue(newValue);
   };
 
-  const handleAutoSave: SwitchProps["onChange"] = (event) => {
-    const isChecked = event.target.checked;
-    setAutoSave(isChecked);
-    window.api.send("form:autosave", isChecked);
+  const handleGoogleSheetToggleChange = (value: boolean) => {
+    setGoogleSheetEnabled(value);
+    window.api.send("google:sheet:enabled", value);
   };
 
   const handleClearForm = (fn: () => void) => {
@@ -69,25 +68,33 @@ export const App = () => {
     setClearForm(false);
   };
 
-  const handleDeleteForm: ButtonProps["onClick"] = async () => {
+  const handleDeleteData: ButtonProps["onClick"] = async () => {
     setClearForm(true);
-    const confirmed = await window.api.invoke("showQuestionDialog", {
-      title: "Confirm Delete",
-      message: "Are you sure you want to delete?",
-    });
+    const response = (
+      await window.api.invoke("showDialog", {
+        type: "question",
+        buttons: ["No", "Yes"],
+        message: "Are you sure you want to delete?",
+      })
+    ).response;
 
-    if (!confirmed) return;
+    if (response === 0) return;
 
-    window.api.send("form:capture:reset");
-    window.api.send("form:upload:reset");
+    window.api.send("reset");
   };
 
-  const handleStartCapture = (data: CaptureForm) => {
+  const handleStartCapture = (data: FormStore["captureForm"]) => {
     setIsCapturing(true);
     window.api.send("capture:start", data);
-    if (autoSave) {
-      window.api.send("form:capture:save", data);
-    }
+    window.api.send("form:capture", data);
+  };
+
+  const handleSaveGoogleSheetData = (data: GoogleStore["sheet"]["values"]) => {
+    window.api.send("google:sheet:values", data);
+    window.api.invoke("showDialog", {
+      type: "info",
+      message: "Saved Successfully",
+    });
   };
 
   const handleStopUpload = () => {
@@ -95,14 +102,10 @@ export const App = () => {
     setIsUploading(false);
   };
 
-  const handleStartUpload = (data: UploadForm) => {
+  const handleStartUpload = (data: FormStore["uploadForm"]) => {
     setIsUploading(true);
-
-    window.api.send("upload:start", { fps: 1, ...data });
-
-    if (autoSave) {
-      window.api.send("form:upload:save", data);
-    }
+    window.api.send("upload:start", data);
+    window.api.send("form:upload", data);
   };
 
   const handleStopCapture = () => {
@@ -111,18 +114,15 @@ export const App = () => {
   };
 
   useEffect(() => {
-    const controller = new AbortController();
-
     const fetchData = async () => {
-      const autoSave = await window.api.invoke("getFormAutoSave");
-      if (autoSave) {
-        setAutoSave(autoSave);
+      const enabled = await window.api.invoke("getGoogleSheetEnabled");
+
+      if (enabled) {
+        setGoogleSheetEnabled(enabled);
       }
     };
 
     fetchData();
-
-    return () => controller.abort();
   }, []);
 
   return (
@@ -146,7 +146,6 @@ export const App = () => {
           sx={{
             marginTop: "50px",
             padding: "20px",
-            minHeight: "400px",
           }}
         >
           <TabContext value={tabValue}>
@@ -154,7 +153,6 @@ export const App = () => {
               sx={{
                 borderBottom: 1,
                 borderColor: "divider",
-                marginBottom: "30px",
               }}
             >
               <TabList onChange={handleTabChange} variant="fullWidth">
@@ -163,39 +161,45 @@ export const App = () => {
                 ))}
               </TabList>
             </Box>
-            <CustomTabPanel value={TABS.CAPTURE.value} keepMounted>
-              <CaptureFormField
-                autoSave={autoSave}
-                clearForm={clearForm}
-                handleClearForm={handleClearForm}
-                isCapturing={isCapturing}
-                onStartCapture={handleStartCapture}
-                onStopCapture={handleStopCapture}
-              />
-            </CustomTabPanel>
-            <CustomTabPanel value={TABS.UPLOAD.value} keepMounted>
-              <UploadFormField
-                autoSave={autoSave}
-                clearForm={clearForm}
-                handleClearForm={handleClearForm}
-                isUploading={isUploading}
-                onStartUpload={handleStartUpload}
-                onStopUpload={handleStopUpload}
-              />
-            </CustomTabPanel>
-            <CustomTabPanel value={TABS.STATUS.value} keepMounted>
-              <StatusPanel
-                isCapturing={isCapturing}
-                isUploading={isUploading}
-              />
-            </CustomTabPanel>
-            <CustomTabPanel value={TABS.SETTINGS.value} keepMounted>
-              <SettingsPanel
-                autoSave={autoSave}
-                handleOnChange={handleAutoSave}
-                handleDeleteForm={handleDeleteForm}
-              />
-            </CustomTabPanel>
+            <Box
+              sx={{
+                height: "300px",
+                marginTop: "30px",
+              }}
+            >
+              <CustomTabPanel value={TABS.CAPTURE.value} keepMounted>
+                <CaptureFormField
+                  clearForm={clearForm}
+                  handleClearForm={handleClearForm}
+                  isCapturing={isCapturing}
+                  onStartCapture={handleStartCapture}
+                  onStopCapture={handleStopCapture}
+                />
+              </CustomTabPanel>
+              <CustomTabPanel value={TABS.UPLOAD.value} keepMounted>
+                <UploadFormField
+                  clearForm={clearForm}
+                  handleClearForm={handleClearForm}
+                  isUploading={isUploading}
+                  onStartUpload={handleStartUpload}
+                  onStopUpload={handleStopUpload}
+                />
+              </CustomTabPanel>
+              <CustomTabPanel value={TABS.STATUS.value} keepMounted>
+                <StatusPanel
+                  isCapturing={isCapturing}
+                  isUploading={isUploading}
+                />
+              </CustomTabPanel>
+              <CustomTabPanel value={TABS.SETTINGS.value} keepMounted>
+                <SettingsPanel
+                  isGoogleSheetEnabeld={googleSheetEnabled}
+                  handleSaveGoogleSheetData={handleSaveGoogleSheetData}
+                  handleDeleteData={handleDeleteData}
+                  handleGoogleSheetToggleChange={handleGoogleSheetToggleChange}
+                />
+              </CustomTabPanel>
+            </Box>
           </TabContext>
         </Paper>
         <Paper

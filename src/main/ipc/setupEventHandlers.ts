@@ -1,4 +1,4 @@
-import { app, ipcMain } from "electron";
+import { app, dialog, ipcMain, shell, type BrowserWindow } from "electron";
 import type { EventHandlerMap, SendEvent } from "./types";
 import { store } from "@main/store";
 import cron, { type ScheduledTask } from "node-cron";
@@ -7,12 +7,15 @@ import {
   formatDate,
   generateCronSchedule,
   getFilesByExtension,
+  handleError,
+  validatePath,
 } from "@main/utils";
 import { join } from "node:path";
-import { isDev } from "@main/config";
 import { createFFmpeg } from "@main/ffmpeg";
-import { createYouTube } from "@main/youtube";
+import { createGoogle } from "@main/google";
 import { logger } from "@main/log";
+import { config } from "@main/config";
+import type { Auth } from "googleapis";
 
 const registerEventHandlers = (handlers: EventHandlerMap) => {
   (Object.keys(handlers) as Array<keyof EventHandlerMap>).forEach((channel) => {
@@ -20,23 +23,37 @@ const registerEventHandlers = (handlers: EventHandlerMap) => {
   });
 };
 
-let captureInterval: ReturnType<typeof setInterval> | null = null;
-let scheduledUploadTask: ScheduledTask | null = null;
+let captureInterval: ReturnType<typeof setInterval>;
+let scheduledUploadTask: ScheduledTask;
 
-export const setupEventHandlers = (sendEvent: SendEvent) => {
-  const ffmpegExeFile = "ffmpeg.exe";
-
-  const ffmpegExe = isDev
-    ? join(app.getAppPath(), `node_modules/ffmpeg-static/${ffmpegExeFile}`)
-    : join(process.resourcesPath, ffmpegExeFile);
+export const setupEventHandlers = (
+  sendEvent: SendEvent,
+  mainWindow: BrowserWindow,
+) => {
+  const ffmpegExe = config["dev"]
+    ? join(
+        app.getAppPath(),
+        `node_modules/ffmpeg-static/${config["files"]["ffmpeg"]}`,
+      )
+    : join(process.resourcesPath, config["files"]["ffmpeg"]);
 
   const ffmpeg = createFFmpeg(ffmpegExe, logger);
 
+  const appData = app.getPath("userData");
+
   registerEventHandlers({
+    "file:open": (_envet, { filePath }) => {
+      shell.openPath(filePath);
+    },
+    reset: () => {
+      store.delete("form");
+      store.delete("google");
+    },
     "capture:start": (_event, { interval, ...rest }) => {
       sendEvent("capture:message", {
         message: "Capture started",
       });
+
       captureInterval = setInterval(async () => {
         await ffmpeg.captureFrame({
           ...rest,
@@ -49,86 +66,136 @@ export const setupEventHandlers = (sendEvent: SendEvent) => {
     "capture:stop": () => {
       if (captureInterval) {
         clearInterval(captureInterval);
-        captureInterval = null;
       }
       sendEvent("capture:message", {
         message: "Capture stopped",
       });
     },
-    "form:autosave": (_event, autoSave) => {
-      store.set("form.autoSave", autoSave);
+
+    "form:capture": (_envet, formData) => {
+      store.set("form.captureForm", formData);
     },
-    "form:capture:reset": () => {
-      store.delete("captureForm");
+    "form:upload": (_envet, formData) => {
+      store.set("form.uploadForm", formData);
     },
-    "form:capture:save": (_envet, formData) => {
-      store.set("captureForm", formData);
+    "google:secretFile": (_envet, googleSecretFile) => {
+      store.set("google.secretFile", googleSecretFile);
     },
-    "form:upload:reset": () => {
-      store.delete("uploadForm");
+    "google:sheet:enabled": (_envet, enabled) => {
+      store.set("google.sheet.enabled", enabled);
     },
-    "form:upload:save": (_envet, formData) => {
-      store.set("uploadForm", formData);
+    "google:sheet:values": (_envet, data) => {
+      store.set("google.sheet.values", data);
     },
-    "upload:start": async (
-      _event,
-      { fps, inputFolder, numberUpload, secretFile },
-    ) => {
+    "upload:start": async (_event, { fps, inputFolder, numberUpload }) => {
       scheduledUploadTask = cron.schedule(
         generateCronSchedule(numberUpload),
         async () => {
-          const today = new Date();
-          const videoTitle = formatDate(today).second;
-          const images = await getFilesByExtension(inputFolder, ".png");
-          if (images.length === 0) {
-            throw new Error("No images found to create video");
+          try {
+            const today = new Date();
+            const videoTitle = formatDate(today).second;
+
+            const images = await getFilesByExtension(
+              inputFolder,
+              config["files"]["imageExt"],
+            );
+
+            if (images.length === 0) {
+              throw new Error("No images found to create video");
+            }
+
+            sendEvent("capture:message", {
+              message: "Creating video...",
+            });
+
+            const { videoFile } = await ffmpeg.createVideo(
+              inputFolder,
+              fps,
+              join(appData, "images_list.tmp"),
+              images,
+              (progress) => {
+                sendEvent("capture:progress", { progress });
+                sendEvent("capture:message", {
+                  message: `Creating video: ${progress}% complete`,
+                });
+              },
+            );
+
+            sendEvent("capture:message", {
+              message: `Video created: ${videoFile}`,
+            });
+
+            await deleteFiles(images);
+
+            sendEvent("upload:message", {
+              message: "Uploading video...",
+            });
+
+            const secretFile = await store.get("google.secretFile");
+
+            if (!secretFile) {
+              throw new Error("Secret file not found");
+            }
+
+            const tokenFile = join(appData, config["files"]["token"]);
+
+            if (!(await validatePath(tokenFile, "json"))) {
+              throw new Error("Please generate token in settings");
+            }
+
+            const google = createGoogle(tokenFile, secretFile, logger);
+            let googleAuthClient: Auth.OAuth2Client;
+
+            googleAuthClient = await google.loadOAuthClient();
+
+            const videoUrl = await google.uploadVideo(
+              googleAuthClient,
+              videoTitle,
+              videoFile,
+              (progress) => {
+                sendEvent("upload:progress", { progress });
+                sendEvent("upload:message", {
+                  message: `Upload video: ${progress}% complete`,
+                });
+              },
+            );
+
+            sendEvent("upload:message", {
+              message: `Uploaded: ${videoUrl}`,
+            });
+
+            const googleSheetEnabled = await store.get("google.sheet.enabled");
+            if (!googleSheetEnabled) return;
+            const googleSheetForm = await store.get("google.sheet.values");
+
+            if (!googleSheetForm?.sheetId || !googleSheetForm?.sheetTitle) {
+              throw new Error(
+                "Please set both the Sheet ID and Sheet Title in settings",
+              );
+            }
+            await google.insertData(
+              googleAuthClient,
+              googleSheetForm.sheetId,
+              googleSheetForm.sheetTitle,
+              [[today.toString(), videoUrl]],
+            );
+          } catch (error) {
+            const errorObj = handleError(error);
+            const { message } = errorObj;
+
+            logger.error("Upload Error: ", errorObj);
+
+            dialog.showMessageBox(mainWindow, {
+              type: "error",
+              title: config["appTitle"],
+              message,
+            });
           }
-          sendEvent("capture:message", {
-            message: "Creating video...",
-          });
-          const { videoFile } = await ffmpeg.createVideo(
-            inputFolder,
-            fps,
-            join(app.getPath("userData"), "images_list.tmp"),
-            images,
-            (progress) => {
-              sendEvent("capture:progress", { progress });
-              sendEvent("capture:message", {
-                message: `Creating video: ${progress}% complete`,
-              });
-            },
-          );
-          sendEvent("capture:message", {
-            message: `Video created: ${videoFile}`,
-          });
-          await deleteFiles(images);
-          sendEvent("upload:message", {
-            message: "Uploading video...",
-          });
-          const youtube = createYouTube(
-            join(app.getPath("userData"), "token.json"),
-            secretFile,
-            logger,
-          );
-          const videoId = await youtube.uploadVideo(
-            videoTitle,
-            videoFile,
-            (progress) => {
-              sendEvent("upload:progress", { progress });
-              sendEvent("upload:message", {
-                message: `Upload video: ${progress}% complete`,
-              });
-            },
-          );
-          sendEvent("upload:message", {
-            message: `Uploaded: https://youtu.be/${videoId}`,
-          });
         },
       );
     },
     "upload:stop": () => {
       scheduledUploadTask?.stop();
-      scheduledUploadTask = null;
     },
   });
 };

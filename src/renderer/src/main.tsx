@@ -1,44 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { Providers } from "./providers";
 import { App } from "@renderer/app";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import "@fontsource/inter/500.css";
+import "@fontsource/noto-sans-jp/japanese-500.css";
 import "./assets/main.css";
-
-const darkTheme = createTheme({
-  components: {
-    MuiFormControlLabel: {
-      styleOverrides: {
-        root: {
-          margin: 0,
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          background: "#1e2227",
-        },
-      },
-    },
-  },
-  typography: {
-    fontFamily: "Inter",
-  },
-  palette: {
-    mode: "dark",
-    background: {
-      default: "#23272e",
-    },
-  },
-});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider theme={darkTheme}>
-      <CssBaseline />
+    <Providers>
       <App />
-    </ThemeProvider>
+    </Providers>
   </StrictMode>,
 );

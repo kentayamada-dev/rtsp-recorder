@@ -1,7 +1,7 @@
 import { describe, it, vi } from "vitest";
 import { createFFmpeg } from "./index";
 import { join } from "node:path";
-import { getFilesByExtension } from "@main/utils";
+import { getFilesByExtension } from "../utils/index";
 
 describe("ffmpeg", () => {
   const testOutputFolder = join(process.cwd(), ".vitest/test-captures");

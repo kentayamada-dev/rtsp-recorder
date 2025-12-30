@@ -1,4 +1,3 @@
-import * as React from "react";
 import { NumberField } from "@base-ui-components/react/number-field";
 import {
   IconButton,
@@ -9,6 +8,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import { KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
+import { useId } from "react";
 
 type CustomNumberFieldProps = NumberField.Root.Props & {
   label: string;
@@ -23,7 +23,7 @@ export const CustomNumberField = ({
   helperText,
   ...other
 }: CustomNumberFieldProps) => {
-  let id = React.useId();
+  let id = useId();
   if (idProp) {
     id = idProp;
   }
@@ -70,25 +70,27 @@ export const CustomNumberField = ({
                   }}
                 >
                   <NumberField.Increment
-                    render={<IconButton size="medium" aria-label="Increase" />}
+                    render={<IconButton size="small" aria-label="Increase" />}
                   >
                     <KeyboardArrowUp
-                      fontSize="medium"
+                      fontSize="small"
                       sx={{ transform: "translateY(2px)" }}
                     />
                   </NumberField.Increment>
 
                   <NumberField.Decrement
-                    render={<IconButton size="medium" aria-label="Decrease" />}
+                    render={<IconButton size="small" aria-label="Decrease" />}
                   >
                     <KeyboardArrowDown
-                      fontSize="medium"
+                      fontSize="small"
                       sx={{ transform: "translateY(-2px)" }}
                     />
                   </NumberField.Decrement>
                 </InputAdornment>
               }
-              sx={{ pr: 0 }}
+              sx={{
+                pr: 0,
+              }}
             />
           );
         }}

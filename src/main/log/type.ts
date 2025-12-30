@@ -4,9 +4,6 @@ type LoggerOptions = {
 
 type LogLevel = "info" | "error";
 
-type Logger = Record<
-  LogLevel,
-  (message: string, ...args: any[]) => Promise<void>
->;
+type Logger = Record<LogLevel, (message: string, log?: any) => Promise<void>>;
 
 export type { LoggerOptions, Logger, LogLevel };

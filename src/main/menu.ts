@@ -1,5 +1,5 @@
 import { Menu, shell, type MenuItemConstructorOptions } from "electron";
-import { isDev } from "./config";
+import { config } from "./config";
 
 export const createMenu = () => {
   const fileMenu: MenuItemConstructorOptions = {
@@ -32,7 +32,7 @@ export const createMenu = () => {
     ],
   };
 
-  const template: MenuItemConstructorOptions[] = isDev
+  const template: MenuItemConstructorOptions[] = config["dev"]
     ? [fileMenu, devMenu]
     : [fileMenu, aboutMenu];
 

@@ -1,5 +1,6 @@
 import { BrowserWindow, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
+import { config } from "./config";
 
 const UPDATE_NOW = 0;
 
@@ -9,7 +10,7 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
   autoUpdater.on("update-available", async () => {
     const result = await dialog.showMessageBox(mainWindow, {
       type: "info",
-      title: "Update Available",
+      title: config["appTitle"],
       message: "A new version is available",
       detail: "Would you like to download and install the update?",
       buttons: ["Update Now", "Later"],
@@ -23,7 +24,7 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
   autoUpdater.on("update-downloaded", async () => {
     const result = await dialog.showMessageBox(mainWindow, {
       type: "info",
-      title: "Update Ready",
+      title: config["appTitle"],
       message: "The update is ready",
       detail: "Restart the app to apply the update",
       buttons: ["Restart Now", "Later"],
@@ -37,7 +38,7 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
   autoUpdater.on("error", async () => {
     await dialog.showMessageBox(mainWindow, {
       type: "error",
-      title: "Update Error",
+      title: config["appTitle"],
       message: "Something went wrong while updating the app.",
       detail: "Please try again later.",
       buttons: ["OK"],

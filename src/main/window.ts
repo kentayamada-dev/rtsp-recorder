@@ -2,9 +2,9 @@ import { app, BrowserWindow, shell } from "electron";
 import { join } from "node:path";
 import { getEnv, isDefined } from "@main/utils";
 import { quitting } from "@main/state";
-import { isDev } from "@main/config";
 import { store } from "@main/store";
 import { setupAutoUpdater } from "@main/updater";
+import { config } from "./config";
 
 const createMainWindow = async (): Promise<BrowserWindow> => {
   const window = await store.get("window");
@@ -23,10 +23,11 @@ const createMainWindow = async (): Promise<BrowserWindow> => {
         }),
     show: false,
     backgroundColor: "#23272e",
+    title: config["appTitle"],
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
-      devTools: isDev,
+      devTools: config["dev"],
     },
   });
 
@@ -63,7 +64,7 @@ const createMainWindow = async (): Promise<BrowserWindow> => {
   });
 
   mainWindow.once("show", () => {
-    if (isDev) return;
+    if (config["dev"]) return;
 
     setTimeout(() => {
       if (!mainWindow) return;
@@ -76,7 +77,7 @@ const createMainWindow = async (): Promise<BrowserWindow> => {
     return { action: "deny" };
   });
 
-  if (isDev) {
+  if (config["dev"]) {
     mainWindow.loadURL(getEnv("ELECTRON_RENDERER_URL"));
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));

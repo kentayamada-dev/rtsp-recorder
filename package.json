@@ -1,6 +1,6 @@
 {
   "name": "rtsp-recorder",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "main": "out/main/index.js",
   "author": {
     "name": "Kenta Yamada"
@@ -33,7 +33,7 @@
     "@electron-toolkit/tsconfig": "2.0.0",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
-    "@fontsource/inter": "5.2.8",
+    "@fontsource/noto-sans-jp": "5.2.8",
     "@google-cloud/local-auth": "3.0.1",
     "@hookform/resolvers": "5.2.2",
     "@melloware/react-logviewer": "6.3.4",

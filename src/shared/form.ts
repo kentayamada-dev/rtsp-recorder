@@ -1,17 +1,25 @@
-type CaptureForm = {
-  rtspUrl: string;
-  outputFolder: string;
-  interval: number;
-};
-
-type UploadForm = {
-  inputFolder: string;
+type GoogleStore = {
   secretFile: string;
-  numberUpload: number;
+  sheet: {
+    enabled: boolean;
+    values: {
+      sheetId: string;
+      sheetTitle: string;
+    };
+  };
 };
 
 type FormStore = {
-  autoSave: boolean;
+  captureForm: {
+    rtspUrl: string;
+    outputFolder: string;
+    interval: number;
+  };
+  uploadForm: {
+    inputFolder: string;
+    numberUpload: number;
+    fps: number;
+  };
 };
 
-export type { FormStore, CaptureForm, UploadForm };
+export type { FormStore, GoogleStore };
