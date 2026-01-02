@@ -23,6 +23,7 @@ import { Info, Pause, PlayArrow } from "@mui/icons-material";
 import type { FormStore } from "@shared-types/form";
 import { onValid } from "@renderer/utils";
 import { CustomNumberField } from "./customNumberField";
+import { useLocale } from "@renderer/i18n";
 
 const StyledForm = styled("form")(() => ({
   height: "100%",
@@ -37,21 +38,6 @@ type UploadFormFieldProps = {
   onStartUpload: (data: FormSchema) => void;
   onStopUpload: () => void;
 };
-
-const formSchema = strictObject({
-  inputFolder: string().refine(
-    async (folderPath) => {
-      const isValid = await window.api.invoke("validatePath", {
-        path: folderPath,
-        type: "folder",
-      });
-      return isValid;
-    },
-    { message: "Invalid folder path" },
-  ),
-  numberUpload: number().min(1).max(6),
-  fps: number().min(1),
-}) satisfies ZodType<FormSchema>;
 
 const initialDefaults: FormSchema = {
   inputFolder: "",
@@ -78,6 +64,22 @@ export const UploadFormField = ({
   onStartUpload,
   onStopUpload,
 }: UploadFormFieldProps) => {
+  const { t } = useLocale();
+  const formSchema = strictObject({
+    inputFolder: string().refine(
+      async (folderPath) => {
+        const isValid = await window.api.invoke("validatePath", {
+          path: folderPath,
+          type: "folder",
+        });
+        return isValid;
+      },
+      { message: t("error.folder") },
+    ),
+    numberUpload: number().min(1).max(6),
+    fps: number().min(1),
+  }) satisfies ZodType<FormSchema>;
+
   const {
     control,
     handleSubmit,
@@ -181,16 +183,15 @@ export const UploadFormField = ({
                   render={({ field }) => (
                     <FormControl
                       fullWidth
-                      required
                       variant="standard"
                       error={Boolean(numberUploadErrorMessage)}
                     >
                       <InputLabel id="numberUpload-label">
-                        Upload Times
+                        {t("form.upload.uploadTimes")}
                       </InputLabel>
                       <Select
                         labelId="numberUpload-label"
-                        label="Upload Times"
+                        label={t("form.upload.uploadTimes")}
                         inputProps={{ readOnly: isUploading }}
                         {...field}
                       >
@@ -221,12 +222,12 @@ export const UploadFormField = ({
                       <ul
                         style={{ margin: 0, paddingLeft: 10, paddingRight: 10 }}
                       >
-                        <li>1 = Daily at midnight</li>
-                        <li>2 = Twice daily (midnight, noon)</li>
-                        <li>3 = Every 8 hours</li>
-                        <li>4 = Every 6 hours</li>
-                        <li>5 = Every 5 hours</li>
-                        <li>6 = Every 4 hours</li>
+                        <li>{t("form.upload.uploadOptions.1")}</li>
+                        <li>{t("form.upload.uploadOptions.2")}</li>
+                        <li>{t("form.upload.uploadOptions.3")}</li>
+                        <li>{t("form.upload.uploadOptions.4")}</li>
+                        <li>{t("form.upload.uploadOptions.5")}</li>
+                        <li>{t("form.upload.uploadOptions.6")}</li>
                       </ul>
                     </>
                   }
@@ -240,7 +241,7 @@ export const UploadFormField = ({
               control={control}
               render={({ field }) => (
                 <CustomNumberField
-                  label="FPS"
+                  label={t("form.upload.fps")}
                   readOnly={isUploading}
                   onValueChange={(v) =>
                     field.onChange(
@@ -249,7 +250,6 @@ export const UploadFormField = ({
                   }
                   error={Boolean(fpsErrorMessage)}
                   helperText={fpsErrorMessage || " "}
-                  required
                   min={1}
                   {...field}
                 />
@@ -276,8 +276,7 @@ export const UploadFormField = ({
                       helperText={inputFolderErrorMessage || " "}
                       variant="standard"
                       fullWidth
-                      required
-                      label="Input Folder"
+                      label={t("form.upload.inputFolder")}
                       slotProps={{
                         input: {
                           readOnly: isUploading,
@@ -299,7 +298,7 @@ export const UploadFormField = ({
                   variant="contained"
                   onClick={handleSelectFolder}
                 >
-                  Browse
+                  {t("form.browse")}
                 </Button>
               </Box>
             </Stack>

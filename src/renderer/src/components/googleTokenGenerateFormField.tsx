@@ -9,6 +9,7 @@ import {
   Typography,
   type ButtonProps,
 } from "@mui/material";
+import { useLocale } from "@renderer/i18n";
 import type { GoogleStore } from "@shared-types/form";
 import { useEffect, useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
@@ -24,20 +25,21 @@ const initialDefaults: FormSchema = {
   secretFile: "",
 };
 
-const formSchema = strictObject({
-  secretFile: string().refine(
-    async (filePath) => {
-      const isValid = await window.api.invoke("validatePath", {
-        path: filePath,
-        type: "json",
-      });
-      return isValid;
-    },
-    { message: "Invalid file path" },
-  ),
-}) satisfies ZodType<FormSchema>;
-
 export const GoogleTokenGenerateFormField = () => {
+  const { t } = useLocale();
+  const formSchema = strictObject({
+    secretFile: string().refine(
+      async (filePath) => {
+        const isValid = await window.api.invoke("validatePath", {
+          path: filePath,
+          type: "json",
+        });
+        return isValid;
+      },
+      { message: t("error.file") },
+    ),
+  }) satisfies ZodType<FormSchema>;
+
   const {
     control,
     handleSubmit,
@@ -102,7 +104,7 @@ export const GoogleTokenGenerateFormField = () => {
             width: "100%",
           }}
         >
-          <Typography variant="h6">Google Token Generate</Typography>
+          <Typography variant="h6">{t("form.googleToken.title")}</Typography>
           <Stack
             direction="row"
             sx={{
@@ -124,8 +126,7 @@ export const GoogleTokenGenerateFormField = () => {
                     helperText={googleSecretFileErrorMessage || " "}
                     variant="standard"
                     fullWidth
-                    required
-                    label="Secret File"
+                    label={t("form.googleToken.secretFile")}
                     {...field}
                   />
                 )}
@@ -141,7 +142,7 @@ export const GoogleTokenGenerateFormField = () => {
                 variant="contained"
                 onClick={handleGoogleSecretFile}
               >
-                Browse
+                {t("form.browse")}
               </Button>
             </Box>
           </Stack>
@@ -160,7 +161,7 @@ export const GoogleTokenGenerateFormField = () => {
               alignSelf: "flex-end",
             }}
           >
-            generate
+            {t("form.googleToken.generate")}
           </Button>
         </Stack>
       </Paper>

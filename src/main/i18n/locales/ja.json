@@ -1,0 +1,29 @@
+{
+  "menuBar": {
+    "file": "ファイル",
+    "view": "表示",
+    "about": "アプリについて",
+    "language": "言語変更",
+    "devInfo": "開発者情報",
+    "appSourceCode": "ソースコード",
+    "restart": "再起動",
+    "later": "後で",
+    "quit": "終了",
+    "forceReload": "強制再読み込み",
+    "toggleDevTools": "開発者ツール"
+  },
+  "dialog": {
+    "restartRequired": "再起動が必要です",
+    "restartMessage": "変更を反映するためアプリを再起動してください"
+  },
+  "autoUpdater": {
+    "updateAvailable": "新しいバージョンが利用可能です",
+    "updateAvailableDetail": "アップデートをダウンロードしてインストールしますか？",
+    "updateNow": "今すぐアップデート",
+    "updateDownloaded": "アップデートの準備ができました",
+    "updateDownloadedDetail": "アップデートを適用するためにアプリを再起動してください",
+    "restartNow": "今すぐ再起動",
+    "updateError": "アプリのアップデート中に問題が発生しました。",
+    "updateErrorDetail": "後でもう一度試してください。"
+  }
+}

@@ -16,4 +16,11 @@ type PathKeys<T> = T extends object
     }[keyof T]
   : never;
 
-export type { PathValue, PathKeys };
+type WindowState = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type { PathValue, PathKeys, WindowState };

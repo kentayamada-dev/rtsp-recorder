@@ -8,6 +8,7 @@ import {
   Typography,
   type SwitchProps,
 } from "@mui/material";
+import { useLocale } from "@renderer/i18n";
 import { onValid } from "@renderer/utils";
 import type { GoogleStore } from "@shared-types/form";
 import { useEffect } from "react";
@@ -31,16 +32,18 @@ const initialDefaults: FormSchema = {
   sheetTitle: "",
 };
 
-const formSchema = strictObject({
-  sheetId: string().min(1, { message: "This field is required." }),
-  sheetTitle: string().min(1, { message: "This field is required." }),
-}) satisfies ZodType<FormSchema>;
-
 export const GoogleSheetBackupFormField = ({
   handleSaveGoogleSheetData,
   handleGoogleSheetToggleChange,
   isGoogleSheetEnabeld,
 }: GoogleSheetBackupFormFieldProps) => {
+  const { t } = useLocale();
+
+  const formSchema = strictObject({
+    sheetId: string().min(1, { message: t("error.empty") }),
+    sheetTitle: string().min(1, { message: t("error.empty") }),
+  }) satisfies ZodType<FormSchema>;
+
   const {
     control,
     handleSubmit,
@@ -96,7 +99,7 @@ export const GoogleSheetBackupFormField = ({
               alignItems: "center",
             }}
           >
-            <Typography variant="h6">Google Sheet Backup</Typography>
+            <Typography variant="h6">{t("form.googleSheet.title")}</Typography>
             <Switch
               size="small"
               checked={isGoogleSheetEnabeld}
@@ -111,9 +114,8 @@ export const GoogleSheetBackupFormField = ({
                 variant="standard"
                 error={Boolean(sheetIdErrorMessage)}
                 helperText={sheetIdErrorMessage || " "}
-                label="Sheet ID"
+                label={t("form.googleSheet.sheetId")}
                 fullWidth
-                required
                 slotProps={{
                   input: {
                     disabled: !isGoogleSheetEnabeld,
@@ -131,9 +133,8 @@ export const GoogleSheetBackupFormField = ({
                 variant="standard"
                 error={Boolean(sheetTitleErrorMessage)}
                 helperText={sheetTitleErrorMessage || " "}
-                label="Sheet Title"
+                label={t("form.googleSheet.sheetTitle")}
                 fullWidth
-                required
                 slotProps={{
                   input: {
                     disabled: !isGoogleSheetEnabeld,
@@ -153,7 +154,7 @@ export const GoogleSheetBackupFormField = ({
           }}
           disabled={!isGoogleSheetEnabeld}
         >
-          save
+          {t("form.save")}
         </Button>
       </Stack>
     </StyledForm>

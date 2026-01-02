@@ -1,6 +1,12 @@
 import type { FormStore, GoogleStore } from "@shared-types/form";
 import type { createEventSender } from "./sendEvent";
-import type { MessageBoxOptions, MessageBoxReturnValue } from "electron";
+import type {
+  IpcMainEvent,
+  IpcMainInvokeEvent,
+  MessageBoxOptions,
+  MessageBoxReturnValue,
+} from "electron";
+import type { SupportedLang } from "@shared-types/i18n";
 
 type Args<T> = T extends void ? [] : [T];
 
@@ -13,13 +19,17 @@ type Invoke = {
     request: void;
     response: GoogleStore["sheet"]["enabled"] | undefined;
   };
+  getLang: {
+    request: void;
+    response: SupportedLang | undefined;
+  };
   getGoogleSheetValues: {
     request: void;
     response: Partial<GoogleStore["sheet"]["values"]> | undefined;
   };
   getGoogleSecretFile: {
     request: void;
-    response: Partial<GoogleStore["secretFile"]> | undefined;
+    response: GoogleStore["secretFile"] | undefined;
   };
   generateGoogleToken: {
     request: void;
@@ -114,7 +124,7 @@ type MainToRendererEvents = {
 };
 
 type InvokeHandler<K extends keyof Invoke> = (
-  event: Electron.IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   payload: Invoke[K]["request"],
 ) => Promise<Invoke[K]["response"]> | Invoke[K]["response"];
 
@@ -123,7 +133,7 @@ type InvokeHandlerMap = {
 };
 
 type EventHandler<K extends keyof RendererToMainEvents> = (
-  event: Electron.IpcMainEvent,
+  event: IpcMainEvent,
   ...args: Args<RendererToMainEvents[K]["payload"]>
 ) => void;
 

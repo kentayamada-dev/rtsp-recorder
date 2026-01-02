@@ -15,6 +15,7 @@ import { PlayArrow, Pause } from "@mui/icons-material";
 import { CustomNumberField } from "./customNumberField";
 import type { FormStore } from "@shared-types/form";
 import { onValid } from "@renderer/utils";
+import { useLocale } from "@renderer/i18n";
 
 const StyledForm = styled("form")(() => ({
   height: "100%",
@@ -30,21 +31,6 @@ type CaptureFormFieldProps = {
   onStopCapture: () => void;
 };
 
-const formSchema = strictObject({
-  rtspUrl: string().regex(/^rtsp:\/\/.+[a-zA-Z0-9/]$/, "Invalid RTSP URL"),
-  outputFolder: string().refine(
-    async (folderPath) => {
-      const isValid = await window.api.invoke("validatePath", {
-        path: folderPath,
-        type: "folder",
-      });
-      return isValid;
-    },
-    { message: "Invalid folder path" },
-  ),
-  interval: number().min(1, { message: "Interval must be at least 1" }),
-}) satisfies ZodType<FormSchema>;
-
 const initialDefaults: FormSchema = {
   interval: 60,
   rtspUrl: "",
@@ -58,6 +44,23 @@ export const CaptureFormField = ({
   onStartCapture,
   onStopCapture,
 }: CaptureFormFieldProps) => {
+  const { t } = useLocale();
+
+  const formSchema = strictObject({
+    rtspUrl: string().regex(/^rtsp:\/\/.+[a-zA-Z0-9/]$/, t("error.rtspUrl")),
+    outputFolder: string().refine(
+      async (folderPath) => {
+        const isValid = await window.api.invoke("validatePath", {
+          path: folderPath,
+          type: "folder",
+        });
+        return isValid;
+      },
+      { message: t("error.folder") },
+    ),
+    interval: number().min(1, { message: t("error.interval") }),
+  }) satisfies ZodType<FormSchema>;
+
   const {
     control,
     handleSubmit,
@@ -152,7 +155,6 @@ export const CaptureFormField = ({
                   helperText={rtspUrlErrorMessage || " "}
                   label="URL"
                   fullWidth
-                  required
                   slotProps={{
                     input: {
                       readOnly: isCapturing,
@@ -167,7 +169,7 @@ export const CaptureFormField = ({
               control={control}
               render={({ field }) => (
                 <CustomNumberField
-                  label="Interval (seconds)"
+                  label={t("form.capture.interval")}
                   readOnly={isCapturing}
                   onValueChange={(v) =>
                     field.onChange(
@@ -178,7 +180,6 @@ export const CaptureFormField = ({
                   }
                   error={Boolean(intervalErrorMessage)}
                   helperText={intervalErrorMessage || " "}
-                  required
                   min={1}
                   {...field}
                 />
@@ -205,8 +206,7 @@ export const CaptureFormField = ({
                       helperText={outputFolderErrorMessage || " "}
                       variant="standard"
                       fullWidth
-                      required
-                      label="Output Folder"
+                      label={t("form.capture.outputFolder")}
                       slotProps={{
                         input: {
                           readOnly: isCapturing,
@@ -228,7 +228,7 @@ export const CaptureFormField = ({
                   variant="contained"
                   onClick={handleSelectFolder}
                 >
-                  Browse
+                  {t("form.browse")}
                 </Button>
               </Box>
             </Stack>

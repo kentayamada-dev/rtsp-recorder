@@ -1,0 +1,78 @@
+{
+  "title": "RTSP Capture",
+  "tabs": {
+    "capture": "Capture",
+    "upload": "Upload",
+    "status": "Status",
+    "settings": "Settings"
+  },
+  "error": {
+    "rtspUrl": "Invalid RTSP URL",
+    "interval": "Interval must be at least 1",
+    "folder": "Invalid folder path",
+    "empty": "This field is required",
+    "file": "Invalid file path"
+  },
+  "form": {
+    "browse": "Browse",
+    "save": "Save",
+    "capture": {
+      "interval": "Interval (seconds)",
+      "outputFolder": "Output Folder"
+    },
+    "googleSheet": {
+      "title": "Google Sheet Backup",
+      "sheetTitle": "Sheet Title",
+      "sheetId": "Sheet ID"
+    },
+    "googleToken": {
+      "title": "Google Token Generate",
+      "secretFile": "Secret File",
+      "generate": "Generate"
+    },
+    "upload": {
+      "uploadTimes": "Upload Times",
+      "uploadOptions": {
+        "1": "1 = Daily at midnight",
+        "2": "2 = Twice daily (midnight, noon)",
+        "3": "3 = Every 8 hours",
+        "4": "4 = Every 6 hours",
+        "5": "5 = Every 5 hours",
+        "6": "6 = Every 4 hours"
+      },
+      "fps": "FPS",
+      "inputFolder": "Input Folder"
+    }
+  },
+  "messagePanel": {
+    "clear": "Clear",
+    "autoUpdate": {
+      "on": "ON",
+      "off": "OFF",
+      "title": "Auto Update"
+    },
+    "messageTypes": {
+      "capture": "Capture",
+      "upload": "Upload",
+      "title": "Message Type"
+    }
+  },
+  "settingPanel": {
+    "open": "Open",
+    "delete": "Delete All Saved Data",
+    "upload": "Upload",
+    "backup": "Backup",
+    "data": "Data"
+  },
+  "statusPanel": {
+    "autoCapture": "Auto Capture",
+    "createVideo": "Create Video",
+    "uploadYouYube": "Upload YouYube",
+    "autoUpload": "Auto Upload"
+  },
+  "dialog": {
+    "yes": "Yes",
+    "no": "No",
+    "message": "Are you sure you want to delete?"
+  }
+}

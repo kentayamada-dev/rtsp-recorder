@@ -114,19 +114,18 @@ export const createGoogle = (
     auth: Auth.OAuth2Client,
     sheetId: string,
     sheetName: string,
+    headers: (string | number)[],
     values: (string | number)[][],
   ): Promise<void> => {
     const sheets = google.sheets({ version: "v4", auth });
 
-    const spreadsheet = await sheets.spreadsheets.get({
-      spreadsheetId: sheetId,
-    });
+    const sheet = (
+      await sheets.spreadsheets.get({
+        spreadsheetId: sheetId,
+      })
+    ).data.sheets?.find((sheet) => sheet.properties?.title === sheetName);
 
-    const sheetExists = spreadsheet.data.sheets?.some(
-      (sheet) => sheet.properties?.title === sheetName,
-    );
-
-    if (!sheetExists) {
+    if (!sheet) {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: sheetId,
         requestBody: {
@@ -135,6 +134,54 @@ export const createGoogle = (
               addSheet: {
                 properties: {
                   title: sheetName,
+                },
+              },
+            },
+          ],
+        },
+      });
+    }
+
+    const existingData = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${sheetName}!1:1`,
+    });
+
+    const hasHeaders = existingData.data.values?.[0]?.length ?? 0 > 0;
+
+    if (!hasHeaders) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: sheetId,
+        range: `${sheetName}!A1`,
+        valueInputOption: "RAW",
+        requestBody: {
+          values: [headers],
+        },
+      });
+    }
+
+    const updatedSheet = await sheets.spreadsheets.get({
+      spreadsheetId: sheetId,
+    });
+
+    const targetSheet = updatedSheet.data.sheets?.find(
+      (s) => s.properties?.title === sheetName,
+    );
+
+    const targetSheetId = targetSheet?.properties?.sheetId;
+    if (targetSheetId !== undefined) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: sheetId,
+        requestBody: {
+          requests: [
+            {
+              updateSheetProperties: {
+                fields: "gridProperties.frozenRowCount",
+                properties: {
+                  sheetId: targetSheetId,
+                  gridProperties: {
+                    frozenRowCount: 1,
+                  },
                 },
               },
             },

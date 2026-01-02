@@ -69,18 +69,14 @@ export const CustomNumberField = ({
                     },
                   }}
                 >
-                  <NumberField.Increment
-                    render={<IconButton size="small" aria-label="Increase" />}
-                  >
+                  <NumberField.Increment render={<IconButton size="small" />}>
                     <KeyboardArrowUp
                       fontSize="small"
                       sx={{ transform: "translateY(2px)" }}
                     />
                   </NumberField.Increment>
 
-                  <NumberField.Decrement
-                    render={<IconButton size="small" aria-label="Decrease" />}
-                  >
+                  <NumberField.Decrement render={<IconButton size="small" />}>
                     <KeyboardArrowDown
                       fontSize="small"
                       sx={{ transform: "translateY(-2px)" }}

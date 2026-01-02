@@ -1,10 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { isDefined } from "@main/utils";
-import type { PathKeys, PathValue } from "./type";
+import type { PathKeys, PathValue, WindowState } from "./type";
 import { config } from "@main/config";
 import { app } from "electron";
 import type { FormStore, GoogleStore } from "@shared-types/form";
+import type { SupportedLang } from "@shared-types/i18n";
 
 const createStore = <Schema extends Record<string, any>>() => {
   const appData = app.getPath("userData");
@@ -108,12 +109,8 @@ const createStore = <Schema extends Record<string, any>>() => {
 };
 
 export const store = createStore<{
+  lang: SupportedLang;
   form: FormStore;
   google: GoogleStore;
-  window: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  window: WindowState;
 }>();

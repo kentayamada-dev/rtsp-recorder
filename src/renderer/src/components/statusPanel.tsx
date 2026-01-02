@@ -1,6 +1,7 @@
 import { Box, Stack, CircularProgress, Typography } from "@mui/material";
 import { Autorenew, Pause } from "@mui/icons-material";
 import { useEffect, useState } from "react";
+import { useLocale } from "@renderer/i18n";
 
 const CircularProgressWithLabel = ({ value }: { value: number }) => {
   return (
@@ -50,6 +51,7 @@ type StatusPanelProps = {
 export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
   const [captureProgress, setCaptureProgress] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const { t } = useLocale();
 
   useEffect(() => {
     const captureProgressUnsubscribe = window.api.on(
@@ -89,7 +91,7 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
         <Stack
           direction="row"
           sx={{
-            width: "250px",
+            width: "300px",
           }}
         >
           <Box
@@ -125,13 +127,13 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
               alignSelf: "center",
             }}
           >
-            Auto Capture
+            {t("statusPanel.autoCapture")}
           </Typography>
         </Stack>
         <Stack
           direction="row"
           sx={{
-            width: "250px",
+            width: "300px",
           }}
         >
           <Box
@@ -168,7 +170,7 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
               alignSelf: "center",
             }}
           >
-            Create Video
+            {t("statusPanel.createVideo")}
           </Typography>
         </Stack>
       </Stack>
@@ -182,7 +184,7 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
         <Stack
           direction="row"
           sx={{
-            width: "250px",
+            width: "300px",
           }}
         >
           <Box
@@ -218,13 +220,13 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
               alignSelf: "center",
             }}
           >
-            Auto Upload
+            {t("statusPanel.autoUpload")}
           </Typography>
         </Stack>
         <Stack
           direction="row"
           sx={{
-            width: "250px",
+            width: "300px",
           }}
         >
           <Box
@@ -261,7 +263,7 @@ export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
               alignSelf: "center",
             }}
           >
-            Upload YouYube
+            {t("statusPanel.uploadYouYube")}
           </Typography>
         </Stack>
       </Stack>

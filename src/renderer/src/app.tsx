@@ -20,25 +20,7 @@ import { StatusPanel } from "./components/statusPanel";
 import { CaptureFormField } from "./components/captureFormField";
 import { UploadFormField } from "./components/uploadFormField";
 import type { FormStore, GoogleStore } from "@shared-types/form";
-
-const TABS = {
-  CAPTURE: {
-    value: 0,
-    label: "Capture",
-  },
-  UPLOAD: {
-    value: 1,
-    label: "Upload",
-  },
-  STATUS: {
-    value: 2,
-    label: "Status",
-  },
-  SETTINGS: {
-    value: 3,
-    label: "Setting",
-  },
-} as const;
+import { useLocale } from "./i18n";
 
 const CustomTabPanel = styled(TabPanel)<TabPanelProps>(() => ({
   padding: 0,
@@ -46,7 +28,26 @@ const CustomTabPanel = styled(TabPanel)<TabPanelProps>(() => ({
 }));
 
 export const App = () => {
-  const [tabValue, setTabValue] = useState(TABS.CAPTURE.value);
+  const { t } = useLocale();
+  const tabs = {
+    capture: {
+      value: 0,
+      label: t("tabs.capture"),
+    },
+    upload: {
+      value: 1,
+      label: t("tabs.upload"),
+    },
+    status: {
+      value: 2,
+      label: t("tabs.status"),
+    },
+    settings: {
+      value: 3,
+      label: t("tabs.settings"),
+    },
+  } as const;
+  const [tabValue, setTabValue] = useState(tabs.capture.value);
   const [clearForm, setClearForm] = useState<boolean>(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -73,8 +74,8 @@ export const App = () => {
     const response = (
       await window.api.invoke("showDialog", {
         type: "question",
-        buttons: ["No", "Yes"],
-        message: "Are you sure you want to delete?",
+        buttons: [t("dialog.no"), t("dialog.yes")],
+        message: t("dialog.message"),
       })
     ).response;
 
@@ -116,7 +117,6 @@ export const App = () => {
   useEffect(() => {
     const fetchData = async () => {
       const enabled = await window.api.invoke("getGoogleSheetEnabled");
-
       if (enabled) {
         setGoogleSheetEnabled(enabled);
       }
@@ -140,7 +140,7 @@ export const App = () => {
             placeSelf: "center",
           }}
         >
-          RTSP Manager
+          {t("title")}
         </Typography>
         <Paper
           sx={{
@@ -156,7 +156,7 @@ export const App = () => {
               }}
             >
               <TabList onChange={handleTabChange} variant="fullWidth">
-                {Object.values(TABS).map((tab) => (
+                {Object.values(tabs).map((tab) => (
                   <Tab key={tab.value} label={tab.label} value={tab.value} />
                 ))}
               </TabList>
@@ -167,7 +167,7 @@ export const App = () => {
                 marginTop: "30px",
               }}
             >
-              <CustomTabPanel value={TABS.CAPTURE.value} keepMounted>
+              <CustomTabPanel value={tabs.capture.value} keepMounted>
                 <CaptureFormField
                   clearForm={clearForm}
                   handleClearForm={handleClearForm}
@@ -176,7 +176,7 @@ export const App = () => {
                   onStopCapture={handleStopCapture}
                 />
               </CustomTabPanel>
-              <CustomTabPanel value={TABS.UPLOAD.value} keepMounted>
+              <CustomTabPanel value={tabs.upload.value} keepMounted>
                 <UploadFormField
                   clearForm={clearForm}
                   handleClearForm={handleClearForm}
@@ -185,13 +185,13 @@ export const App = () => {
                   onStopUpload={handleStopUpload}
                 />
               </CustomTabPanel>
-              <CustomTabPanel value={TABS.STATUS.value} keepMounted>
+              <CustomTabPanel value={tabs.status.value} keepMounted>
                 <StatusPanel
                   isCapturing={isCapturing}
                   isUploading={isUploading}
                 />
               </CustomTabPanel>
-              <CustomTabPanel value={TABS.SETTINGS.value} keepMounted>
+              <CustomTabPanel value={tabs.settings.value} keepMounted>
                 <SettingsPanel
                   isGoogleSheetEnabeld={googleSheetEnabled}
                   handleSaveGoogleSheetData={handleSaveGoogleSheetData}

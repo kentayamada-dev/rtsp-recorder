@@ -1,5 +1,5 @@
 import { describe, it, vi } from "vitest";
-import { createFFmpeg } from "./index";
+import { createFFmpeg } from ".";
 import { join } from "node:path";
 import { getFilesByExtension } from "../utils/index";
 
@@ -46,10 +46,7 @@ describe("ffmpeg", () => {
   });
 
   it("createVideo", async () => {
-    const images = await getFilesByExtension(
-      "C:\\Users\\K\\Desktop\\New folder",
-      ".png",
-    );
+    const images = await getFilesByExtension(testOutputFolder, ".png");
 
     await ffmpeg.createVideo(
       testOutputFolder,

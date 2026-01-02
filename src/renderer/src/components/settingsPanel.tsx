@@ -14,6 +14,7 @@ import {
   type GoogleSheetBackupFormFieldProps,
 } from "./googleSheetBackupFormField";
 import { GoogleTokenGenerateFormField } from "./googleTokenGenerateFormField";
+import { useLocale } from "@renderer/i18n";
 
 type TabPanelProps = {
   children: JSX.Element;
@@ -44,28 +45,28 @@ const TabPanel = (props: TabPanelProps) => {
   );
 };
 
-const TABS = {
-  UPLOAD: {
-    value: 0,
-    label: "Upload",
-  },
-  BACKUP: {
-    value: 1,
-    label: "Backup",
-  },
-  DATA: {
-    value: 2,
-    label: "Data",
-  },
-} as const;
-
 export const SettingsPanel = ({
   isGoogleSheetEnabeld,
   handleDeleteData,
   handleGoogleSheetToggleChange,
   handleSaveGoogleSheetData,
 }: SettingsPanelProps) => {
-  const [tabsValue, setTabsValue] = useState(TABS.UPLOAD.value);
+  const { t } = useLocale();
+  const tabs = {
+    upload: {
+      value: 0,
+      label: t("settingPanel.upload"),
+    },
+    backup: {
+      value: 1,
+      label: t("settingPanel.backup"),
+    },
+    data: {
+      value: 2,
+      label: t("settingPanel.data"),
+    },
+  } as const;
+  const [tabsValue, setTabsValue] = useState(tabs.upload.value);
   const [configPath, setConfigPath] = useState("");
 
   const handleTabsChange: TabsProps["onChange"] = (_event, newValue) => {
@@ -99,7 +100,7 @@ export const SettingsPanel = ({
         onChange={handleTabsChange}
         sx={{ borderRight: 1, borderColor: "divider", width: "130px" }}
       >
-        {Object.values(TABS).map((tab) => (
+        {Object.values(tabs).map((tab) => (
           <Tab
             key={tab.value}
             label={tab.label}
@@ -110,17 +111,17 @@ export const SettingsPanel = ({
           />
         ))}
       </Tabs>
-      <TabPanel value={tabsValue} index={TABS.UPLOAD.value}>
+      <TabPanel value={tabsValue} index={tabs.upload.value}>
         <GoogleTokenGenerateFormField />
       </TabPanel>
-      <TabPanel value={tabsValue} index={TABS.BACKUP.value}>
+      <TabPanel value={tabsValue} index={tabs.backup.value}>
         <GoogleSheetBackupFormField
           handleGoogleSheetToggleChange={handleGoogleSheetToggleChange}
           handleSaveGoogleSheetData={handleSaveGoogleSheetData}
           isGoogleSheetEnabeld={isGoogleSheetEnabeld}
         />
       </TabPanel>
-      <TabPanel value={tabsValue} index={TABS.DATA.value}>
+      <TabPanel value={tabsValue} index={tabs.data.value}>
         <Stack
           direction="column"
           sx={{
@@ -160,7 +161,7 @@ export const SettingsPanel = ({
               }}
             >
               <Button variant="contained" fullWidth onClick={handleFileOpen}>
-                Open
+                {t("settingPanel.open")}
               </Button>
             </Box>
           </Stack>
@@ -173,7 +174,7 @@ export const SettingsPanel = ({
               alignSelf: "end",
             }}
           >
-            Delete All Saved Data
+            {t("settingPanel.delete")}
           </Button>
         </Stack>
       </TabPanel>

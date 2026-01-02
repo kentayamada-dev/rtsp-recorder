@@ -1,7 +1,7 @@
 import { app, dialog, ipcMain, shell, type BrowserWindow } from "electron";
 import type { EventHandlerMap, SendEvent } from "./types";
 import { store } from "@main/store";
-import cron, { type ScheduledTask } from "node-cron";
+import { type ScheduledTask, schedule } from "node-cron";
 import {
   deleteFiles,
   formatDate,
@@ -87,8 +87,8 @@ export const setupEventHandlers = (
     "google:sheet:values": (_envet, data) => {
       store.set("google.sheet.values", data);
     },
-    "upload:start": async (_event, { fps, inputFolder, numberUpload }) => {
-      scheduledUploadTask = cron.schedule(
+    "upload:start": (_event, { fps, inputFolder, numberUpload }) => {
+      scheduledUploadTask = schedule(
         generateCronSchedule(numberUpload),
         async () => {
           try {
@@ -177,6 +177,7 @@ export const setupEventHandlers = (
               googleAuthClient,
               googleSheetForm.sheetId,
               googleSheetForm.sheetTitle,
+              ["Uploaded Date", "Link"],
               [[today.toString(), videoUrl]],
             );
           } catch (error) {

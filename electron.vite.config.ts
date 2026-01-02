@@ -7,6 +7,7 @@ export default defineConfig({
     resolve: {
       alias: {
         "@main": resolve("src/main"),
+        "@shared-types/i18n": resolve("src/shared/i18n.ts"),
       },
     },
     build: {

@@ -1,11 +1,11 @@
 import { BrowserWindow } from "electron";
 import type { Args, MainToRendererEvents } from "./types";
 
-export const createEventSender = (window: BrowserWindow) => {
+export const createEventSender = (mainWindow: BrowserWindow) => {
   return <K extends keyof MainToRendererEvents>(
     channel: K,
     ...args: Args<MainToRendererEvents[K]["payload"]>
   ) => {
-    window.webContents.send(channel, args[0]);
+    mainWindow.webContents.send(channel, args[0]);
   };
 };

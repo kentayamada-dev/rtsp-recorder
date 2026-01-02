@@ -5,15 +5,18 @@ import { quitting } from "@main/state";
 import { store } from "@main/store";
 import { setupAutoUpdater } from "@main/updater";
 import { config } from "./config";
+import type { WindowState } from "./store/type";
 
-const createMainWindow = async (): Promise<BrowserWindow> => {
-  const window = await store.get("window");
-
+const createMainWindow = async (
+  windowState: WindowState | undefined,
+): Promise<BrowserWindow> => {
   const mainWindow = new BrowserWindow({
-    ...(window
+    ...(windowState
       ? {
           ...Object.fromEntries(
-            Object.entries(window).filter(([, value]) => value !== undefined),
+            Object.entries(windowState).filter(
+              ([, value]) => value !== undefined,
+            ),
           ),
         }
       : {

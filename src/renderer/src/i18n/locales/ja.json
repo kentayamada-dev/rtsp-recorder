@@ -1,0 +1,78 @@
+{
+  "title": "RTSPキャプチャー",
+  "tabs": {
+    "capture": "キャプチャ",
+    "upload": "アップロード",
+    "status": "ステータス",
+    "settings": "設定"
+  },
+  "error": {
+    "rtspUrl": "無効なRTSP URL",
+    "interval": "間隔は最低1である必要があります",
+    "folder": "無効なフォルダパス",
+    "empty": "このフィールドは必須です",
+    "file": "無効なファイルパス"
+  },
+  "form": {
+    "browse": "参照",
+    "save": "保存",
+    "capture": {
+      "interval": "間隔（秒）",
+      "outputFolder": "出力フォルダ"
+    },
+    "googleSheet": {
+      "title": "Googleシート バックアップ",
+      "sheetTitle": "シートタイトル",
+      "sheetId": "シートID"
+    },
+    "googleToken": {
+      "title": "Googleトークン生成",
+      "secretFile": "秘密ファイル",
+      "generate": "生成"
+    },
+    "upload": {
+      "uploadTimes": "アップロード間隔",
+      "uploadOptions": {
+        "1": "1 = 毎日深夜（午前0時）",
+        "2": "2 = 1日2回（深夜、正午）",
+        "3": "3 = 8時間ごと",
+        "4": "4 = 6時間ごと",
+        "5": "5 = 5時間ごと",
+        "6": "6 = 4時間ごと"
+      },
+      "fps": "FPS",
+      "inputFolder": "入力フォルダ"
+    }
+  },
+  "messagePanel": {
+    "clear": "クリア",
+    "autoUpdate": {
+      "on": "ON",
+      "off": "OFF",
+      "title": "自動更新"
+    },
+    "messageTypes": {
+      "capture": "キャプチャ",
+      "upload": "アップロード",
+      "title": "メッセージタイプ"
+    }
+  },
+  "settingPanel": {
+    "open": "開く",
+    "delete": "すべての保存データを削除",
+    "upload": "アップロード",
+    "backup": "バックアップ",
+    "data": "データ"
+  },
+  "statusPanel": {
+    "autoCapture": "自動キャプチャ",
+    "createVideo": "ビデオ作成",
+    "uploadYouYube": "YouTubeアップロード",
+    "autoUpload": "自動アップロード"
+  },
+  "dialog": {
+    "yes": "はい",
+    "no": "いいえ",
+    "message": "本当に削除しますか？"
+  }
+}

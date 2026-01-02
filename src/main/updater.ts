@@ -1,36 +1,35 @@
 import { BrowserWindow, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
 import { config } from "./config";
-
-const UPDATE_NOW = 0;
+import { i18n } from "./i18n";
 
 export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
   autoUpdater.autoDownload = false;
 
   autoUpdater.on("update-available", async () => {
-    const result = await dialog.showMessageBox(mainWindow, {
+    const { response } = await dialog.showMessageBox(mainWindow, {
       type: "info",
       title: config["appTitle"],
-      message: "A new version is available",
-      detail: "Would you like to download and install the update?",
-      buttons: ["Update Now", "Later"],
+      message: i18n.t("autoUpdater.updateAvailable"),
+      detail: i18n.t("autoUpdater.updateAvailableDetail"),
+      buttons: [i18n.t("autoUpdater.updateNow"), i18n.t("menuBar.later")],
     });
 
-    if (result.response === UPDATE_NOW) {
+    if (response === 0) {
       autoUpdater.downloadUpdate();
     }
   });
 
   autoUpdater.on("update-downloaded", async () => {
-    const result = await dialog.showMessageBox(mainWindow, {
+    const { response } = await dialog.showMessageBox(mainWindow, {
       type: "info",
       title: config["appTitle"],
-      message: "The update is ready",
-      detail: "Restart the app to apply the update",
-      buttons: ["Restart Now", "Later"],
+      message: i18n.t("autoUpdater.updateDownloaded"),
+      detail: i18n.t("autoUpdater.updateDownloadedDetail"),
+      buttons: [i18n.t("autoUpdater.restartNow"), i18n.t("menuBar.later")],
     });
 
-    if (result.response === UPDATE_NOW) {
+    if (response === 0) {
       autoUpdater.quitAndInstall();
     }
   });
@@ -39,8 +38,8 @@ export const setupAutoUpdater = (mainWindow: BrowserWindow): void => {
     await dialog.showMessageBox(mainWindow, {
       type: "error",
       title: config["appTitle"],
-      message: "Something went wrong while updating the app.",
-      detail: "Please try again later.",
+      message: i18n.t("autoUpdater.updateError"),
+      detail: i18n.t("autoUpdater.updateErrorDetail"),
       buttons: ["OK"],
     });
   });

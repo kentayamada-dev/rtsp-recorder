@@ -1,5 +1,5 @@
 export const config = {
-  appTitle: "RTSP Recorder",
+  appTitle: "RTSP Capture",
   dev: import.meta.env.DEV,
   files: {
     config: "config.json",

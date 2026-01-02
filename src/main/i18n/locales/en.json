@@ -1,0 +1,29 @@
+{
+  "menuBar": {
+    "file": "File",
+    "view": "View",
+    "about": "About",
+    "language": "Switch Language",
+    "devInfo": "Developer Information",
+    "appSourceCode": "Source Code",
+    "restart": "Restart",
+    "later": "Later",
+    "quit": "Quit",
+    "forceReload": "Force Reload",
+    "toggleDevTools": "Toggle Developer Tools"
+  },
+  "dialog": {
+    "restartRequired": "Restart required",
+    "restartMessage": "Please restart the app for changes to take effect"
+  },
+  "autoUpdater": {
+    "updateAvailable": "A new version is available",
+    "updateAvailableDetail": "Would you like to download and install the update?",
+    "updateNow": "Update Now",
+    "updateDownloaded": "The update is ready",
+    "updateDownloadedDetail": "Restart the app to apply the update",
+    "restartNow": "Restart Now",
+    "updateError": "Something went wrong while updating the app.",
+    "updateErrorDetail": "Please try again later."
+  }
+}

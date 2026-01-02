@@ -8,6 +8,8 @@ import { createEventSender } from "./ipc/sendEvent";
 import { logger } from "./log";
 import { createMenu } from "./menu";
 import { setupSecurity } from "./security";
+import { i18n } from "./i18n";
+import { store } from "./store";
 
 process.on("uncaughtException", (error) => {
   logger.error("Uncaught Exception:", error);
@@ -31,10 +33,12 @@ app.on("window-all-closed", () => {
 
 const initializeApp = async () => {
   await app.whenReady();
-  const mainWindow = await createMainWindow();
+  await i18n.init();
+  const windowState = await store.get("window");
+  const mainWindow = await createMainWindow(windowState);
   setupSecurity(mainWindow);
   const sendEvent = createEventSender(mainWindow);
-  createMenu();
+  createMenu(mainWindow);
   createTray(mainWindow);
   setupInvokeHandlers(mainWindow);
   setupEventHandlers(sendEvent, mainWindow);

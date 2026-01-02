@@ -6,6 +6,7 @@ import { createGoogle } from "@main/google";
 import { join } from "node:path";
 import { logger } from "@main/log";
 import { config } from "@main/config";
+import { i18n } from "@main/i18n";
 
 const registerInvokeHandlers = (handlers: InvokeHandlerMap) => {
   (Object.keys(handlers) as Array<keyof InvokeHandlerMap>).forEach(
@@ -33,6 +34,11 @@ export const setupInvokeHandlers = (mainWindow: BrowserWindow) => {
       const uploadForm = store.get("form.uploadForm");
 
       return uploadForm;
+    },
+    getLang: () => {
+      const lang = i18n.getCurrentLang();
+
+      return lang;
     },
     getGoogleSheetEnabled: () => {
       const enabled = store.get("google.sheet.enabled");

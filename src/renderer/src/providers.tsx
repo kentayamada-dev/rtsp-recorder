@@ -1,6 +1,7 @@
 import { type JSX } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
+import { LocaleProvider } from "./i18n";
 
 const darkTheme = createTheme({
   components: {
@@ -16,7 +17,7 @@ const darkTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: "Noto Sans JP",
+    fontFamily: "Noto Sans JP Variable",
   },
   palette: {
     mode: "dark",
@@ -32,9 +33,11 @@ type ProvidersProps = {
 
 export const Providers = ({ children }: ProvidersProps) => {
   return (
-    <ThemeProvider theme={darkTheme}>
-      <CssBaseline />
-      {children}
-    </ThemeProvider>
+    <LocaleProvider>
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
+    </LocaleProvider>
   );
 };
