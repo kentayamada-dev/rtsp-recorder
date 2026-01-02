@@ -95,7 +95,7 @@ export const setupInvokeHandlers = (mainWindow: BrowserWindow) => {
       const googleSecretFile = await store.get("google.secretFile");
 
       if (!googleSecretFile) {
-        throw new Error("Google secret file not found");
+        throw new Error(i18n.t("error.googleSecretNotFound"));
       }
 
       const google = createGoogle(

@@ -16,6 +16,7 @@ import { createGoogle } from "@main/google";
 import { logger } from "@main/log";
 import { config } from "@main/config";
 import type { Auth } from "googleapis";
+import { i18n } from "@main/i18n";
 
 const registerEventHandlers = (handlers: EventHandlerMap) => {
   (Object.keys(handlers) as Array<keyof EventHandlerMap>).forEach((channel) => {
@@ -101,7 +102,7 @@ export const setupEventHandlers = (
             );
 
             if (images.length === 0) {
-              throw new Error("No images found to create video");
+              throw new Error(i18n.t("error.imagesNotFound"));
             }
 
             sendEvent("capture:message", {
@@ -134,13 +135,13 @@ export const setupEventHandlers = (
             const secretFile = await store.get("google.secretFile");
 
             if (!secretFile) {
-              throw new Error("Secret file not found");
+              throw new Error(i18n.t("error.secretFileNotFound"));
             }
 
             const tokenFile = join(appData, config["files"]["token"]);
 
             if (!(await validatePath(tokenFile, "json"))) {
-              throw new Error("Please generate token in settings");
+              throw new Error(i18n.t("error.generateToken"));
             }
 
             const google = createGoogle(tokenFile, secretFile, logger);
@@ -169,9 +170,7 @@ export const setupEventHandlers = (
             const googleSheetForm = await store.get("google.sheet.values");
 
             if (!googleSheetForm?.sheetId || !googleSheetForm?.sheetTitle) {
-              throw new Error(
-                "Please set both the Sheet ID and Sheet Title in settings",
-              );
+              throw new Error(i18n.t("error.setSheetData"));
             }
             await google.insertData(
               googleAuthClient,

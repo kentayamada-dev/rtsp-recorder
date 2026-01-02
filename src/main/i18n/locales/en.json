@@ -25,5 +25,15 @@
     "restartNow": "Restart Now",
     "updateError": "Something went wrong while updating the app.",
     "updateErrorDetail": "Please try again later."
+  },
+  "error": {
+    "imagesNotFound": "Images not found",
+    "secretFileNotFound": "Secret file not found",
+    "generateToken": "Please generate token",
+    "setSheetData": "Please set both the Sheet ID and Sheet Title",
+    "googleAuthFailed": "Google authentication failed",
+    "googleSecretNotFound": "Google secret file not found",
+    "googleSecretFaildLoad": "Failed to load google secret file",
+    "googleTokenFaildLoad": "Failed to load google token file"
   }
 }

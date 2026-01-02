@@ -109,20 +109,23 @@ const validatePath = async (path: string, type: "folder" | "json") => {
   }
 };
 
-const generateCronSchedule = (frequency: number): string => {
+const generateCronSchedule = (
+  frequency: number,
+  offsetSeconds: number = 0,
+): string => {
   const schedules: { [key: number]: number[] } = {
-    1: [0], // midnight
-    2: [0, 12], // midnight, noon
-    3: [0, 8, 16], // every 8 hours
-    4: [0, 6, 12, 18], // every 6 hours
-    5: [0, 5, 10, 15, 20], // every 5 hours
-    6: [0, 4, 8, 12, 16, 20], // every 4 hours
+    1: [0],
+    2: [0, 12],
+    3: [0, 8, 16],
+    4: [0, 6, 12, 18],
+    5: [0, 5, 10, 15, 20],
+    6: [0, 4, 8, 12, 16, 20],
   };
 
-  const hours = isDefined(schedules[frequency]);
-  const hourString = hours.join(",");
+  const hours = schedules[frequency];
+  const hourString = hours?.join(",");
 
-  return `0 ${hourString} * * *`;
+  return `${offsetSeconds} 0 ${hourString} * * *`;
 };
 
 const handleError = (error: unknown) => {

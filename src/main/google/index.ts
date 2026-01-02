@@ -5,6 +5,7 @@ import { authenticate } from "@google-cloud/local-auth";
 import type { Logger } from "@main/log/type";
 import { config } from "@main/config";
 import { toMutable } from "@main/utils";
+import { i18n } from "@main/i18n";
 
 export const createGoogle = (
   tokenFile: string,
@@ -21,7 +22,7 @@ export const createGoogle = (
         })
       ).credentials;
     } catch (error) {
-      throw new Error("Google authentication failed");
+      throw new Error(i18n.t("error.googleAuthFailed"));
     }
 
     await writeFile(tokenFile, JSON.stringify(credentials), "utf-8");
@@ -42,14 +43,14 @@ export const createGoogle = (
 
       oauth2Client = new google.auth.OAuth2(client_id, client_secret);
     } catch (error) {
-      throw new Error("Failed to load google secret");
+      throw new Error(i18n.t("error.googleSecretFaildLoad"));
     }
 
     try {
       const credentials = JSON.parse(await readFile(tokenFile, "utf-8"));
       oauth2Client.setCredentials(credentials);
     } catch (error) {
-      throw new Error("Failed to load google token");
+      throw new Error(i18n.t("error.googleTokenFaildLoad"));
     }
 
     return oauth2Client;

@@ -36,8 +36,6 @@ export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
 
       ffmpegProcess.on("error", (err) => reject(err));
 
-      ffmpegProcess.stderr.on("error", (err) => reject(err));
-
       ffmpegProcess.on("close", async (code) => {
         if (code === 0) {
           await logger.info(`Captured: ${filepath}`);
@@ -107,8 +105,6 @@ export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
       });
 
       ffmpegProcess.on("error", (err) => reject(err));
-
-      ffmpegProcess.stderr.on("error", (err) => reject(err));
 
       ffmpegProcess.on("close", async (code) => {
         if (code === 0) {

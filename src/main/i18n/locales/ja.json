@@ -25,5 +25,15 @@
     "restartNow": "今すぐ再起動",
     "updateError": "アプリのアップデート中に問題が発生しました。",
     "updateErrorDetail": "後でもう一度試してください。"
+  },
+  "error": {
+    "imagesNotFound": "画像が見つかりません",
+    "secretFileNotFound": "シークレットファイルが見つかりません",
+    "generateToken": "トークンを生成してください",
+    "setSheetData": "シートIDとシートタイトルの両方を設定してください",
+    "googleAuthFailed": "Google認証に失敗しました",
+    "googleSecretNotFound": "Googleシークレットファイルが見つかりません",
+    "googleSecretFaildLoad": "Googleシークレットファイルの読み込みに失敗しました",
+    "googleTokenFaildLoad": "Googleトークンファイルの読み込みに失敗しました"
   }
 }

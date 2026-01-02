@@ -77,9 +77,11 @@ export const createMenu = (mainWindow: BrowserWindow) => {
     ],
   };
 
-  const template: MenuItemConstructorOptions[] = config["dev"]
-    ? [fileMenu, devMenu, aboutMenu, localeMenu]
-    : [fileMenu, aboutMenu, localeMenu];
-
+  const template: MenuItemConstructorOptions[] = [
+    fileMenu,
+    aboutMenu,
+    localeMenu,
+    ...(config["dev"] ? [devMenu] : []),
+  ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 };
