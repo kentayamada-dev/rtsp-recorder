@@ -62,7 +62,8 @@
     "delete": "すべての保存データを削除",
     "upload": "アップロード",
     "backup": "バックアップ",
-    "data": "データ"
+    "data": "データ",
+    "configFileLocation": "設定ファイルパス"
   },
   "statusPanel": {
     "autoCapture": "自動キャプチャ",

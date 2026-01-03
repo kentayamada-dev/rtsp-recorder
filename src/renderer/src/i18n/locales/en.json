@@ -62,7 +62,8 @@
     "delete": "Delete All Saved Data",
     "upload": "Upload",
     "backup": "Backup",
-    "data": "Data"
+    "data": "Data",
+    "configFileLocation": "Config File Location"
   },
   "statusPanel": {
     "autoCapture": "Auto Capture",

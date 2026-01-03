@@ -144,7 +144,7 @@ export const SettingsPanel = ({
             >
               <TextField
                 value={configPath}
-                label="Config File Location"
+                label={t("settingPanel.configFileLocation")}
                 variant="standard"
                 fullWidth
                 slotProps={{
