@@ -8,6 +8,11 @@ import { config } from "@main/config";
 
 type StrictOmit<T, K extends keyof T> = Omit<T, K>;
 
+const FFMPEG_TIMEOUTS = {
+  CAPTURE: 30000, // 30sec
+  VIDEO_CREATION: 7200000, // 2h
+} as const;
+
 export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
   const captureFrame = async ({
     outputFolder,
@@ -22,11 +27,20 @@ export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
     await mkdir(hourDir, { recursive: true });
 
     return new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        ffmpegProcess.kill();
+        reject(new Error("FFmpeg timeout: video capture"));
+      }, FFMPEG_TIMEOUTS.CAPTURE);
+
       const ffmpegProcess = spawn(ffmpegExe, ["-rtsp_transport", "tcp", "-i", rtspUrl, "-vframes", "1", "-q:v", "1", filepath]);
 
-      ffmpegProcess.on("error", (err) => reject(err));
+      ffmpegProcess.on("error", (err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
 
       ffmpegProcess.on("close", async (code) => {
+        clearTimeout(timeout);
         if (code === 0) {
           await logger.info(`Captured: ${filepath}`);
           onCapture?.(filepath);
@@ -51,6 +65,11 @@ export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
     await writeFile(imgListFile, listContent, "utf-8");
 
     return new Promise<{ videoFile: string }>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        ffmpegProcess.kill();
+        reject(new Error("FFmpeg timeout: video creation"));
+      }, FFMPEG_TIMEOUTS.VIDEO_CREATION);
+
       const ffmpegProcess = spawn(ffmpegExe, [
         "-y",
         "-f",
@@ -89,9 +108,13 @@ export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
         }
       });
 
-      ffmpegProcess.on("error", (err) => reject(err));
+      ffmpegProcess.on("error", (err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
 
       ffmpegProcess.on("close", async (code) => {
+        clearTimeout(timeout);
         if (code === 0) {
           await logger.info(`Video created: ${videoFile}`);
           resolve({ videoFile });
