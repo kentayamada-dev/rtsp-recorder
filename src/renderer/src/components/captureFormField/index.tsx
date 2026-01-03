@@ -1,48 +1,30 @@
-import {
-  TextField,
-  Button,
-  type ButtonProps,
-  IconButton,
-  styled,
-  Stack,
-  Box,
-} from "@mui/material";
+import { TextField, Button, type ButtonProps, IconButton, styled, Stack, Box } from "@mui/material";
 import { string, number, strictObject, type ZodType } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { useEffect } from "react";
 import { PlayArrow, Pause } from "@mui/icons-material";
-import { CustomNumberField } from "./customNumberField";
-import type { FormStore } from "@shared-types/form";
 import { onValid } from "@renderer/utils";
 import { useLocale } from "@renderer/i18n";
+import { CustomNumberField } from "../customNumberField";
+import type { CaptureFormFieldProps, CaptureFormSchema } from "./types";
 
 const StyledForm = styled("form")(() => ({
   height: "100%",
 }));
 
-type FormSchema = FormStore["captureForm"];
-
-type CaptureFormFieldProps = {
-  clearForm: boolean;
-  handleClearForm: (fn: () => void) => void;
-  isCapturing: boolean;
-  onStartCapture: (data: FormSchema) => void;
-  onStopCapture: () => void;
-};
-
-const initialDefaults: FormSchema = {
+const initialDefaults: CaptureFormSchema = {
   interval: 60,
   rtspUrl: "",
   outputFolder: "",
 };
 
 export const CaptureFormField = ({
-  clearForm,
+  isClearingForm,
   handleClearForm,
   isCapturing,
-  onStartCapture,
-  onStopCapture,
+  handleStartCapture,
+  handleStopCapture,
 }: CaptureFormFieldProps) => {
   const { t } = useLocale();
 
@@ -59,28 +41,27 @@ export const CaptureFormField = ({
       { message: t("error.folder") },
     ),
     interval: number().min(1, { message: t("error.interval") }),
-  }) satisfies ZodType<FormSchema>;
+  }) satisfies ZodType<CaptureFormSchema>;
 
   const {
     control,
     handleSubmit,
     setValue,
     reset,
-    getValues,
     formState: { errors },
-  } = useForm<FormSchema>({
+  } = useForm<CaptureFormSchema>({
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: initialDefaults,
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit: SubmitHandler<FormSchema> = async (data) => {
+  const onSubmit: SubmitHandler<CaptureFormSchema> = async (data) => {
     if (isCapturing) {
-      onStopCapture();
+      handleStopCapture();
       return;
     }
-    onStartCapture(data);
+    handleStartCapture(data);
   };
 
   const handleSelectFolder: ButtonProps["onClick"] = async () => {
@@ -104,9 +85,7 @@ export const CaptureFormField = ({
       if (!savedFormState) return;
 
       onValid(savedFormState.rtspUrl, (val) => setValue("rtspUrl", val));
-      onValid(savedFormState.outputFolder, (val) =>
-        setValue("outputFolder", val),
-      );
+      onValid(savedFormState.outputFolder, (val) => setValue("outputFolder", val));
       onValid(savedFormState.interval, (val) => setValue("interval", val));
     };
 
@@ -115,16 +94,7 @@ export const CaptureFormField = ({
 
   useEffect(() => {
     handleClearForm(reset);
-  }, [clearForm]);
-
-  useEffect(() => {
-    const { interval, outputFolder, rtspUrl } = getValues();
-    window.api.send("form:capture", {
-      interval,
-      outputFolder,
-      rtspUrl,
-    });
-  }, []);
+  }, [isClearingForm]);
 
   return (
     <StyledForm onSubmit={handleSubmit(onSubmit)}>
@@ -171,13 +141,7 @@ export const CaptureFormField = ({
                 <CustomNumberField
                   label={t("form.capture.interval")}
                   readOnly={isCapturing}
-                  onValueChange={(v) =>
-                    field.onChange(
-                      typeof v === "number" && v >= 1
-                        ? v
-                        : initialDefaults.interval,
-                    )
-                  }
+                  onValueChange={(v) => field.onChange(typeof v === "number" && v >= 1 ? v : initialDefaults.interval)}
                   error={Boolean(intervalErrorMessage)}
                   helperText={intervalErrorMessage || " "}
                   min={1}
@@ -222,12 +186,7 @@ export const CaptureFormField = ({
                   width: "20%",
                 }}
               >
-                <Button
-                  disabled={isCapturing}
-                  fullWidth
-                  variant="contained"
-                  onClick={handleSelectFolder}
-                >
+                <Button disabled={isCapturing} fullWidth variant="contained" onClick={handleSelectFolder}>
                   {t("form.browse")}
                 </Button>
               </Box>

@@ -42,10 +42,7 @@ const formatDate = (date: Date) => {
   };
 };
 
-const getFilesByExtension = async (
-  folderPath: string,
-  extension: string,
-): Promise<string[]> => {
+const getFilesByExtension = async (folderPath: string, extension: string): Promise<string[]> => {
   const files: string[] = [];
 
   const walkDir = async (currentPath: string): Promise<void> => {
@@ -109,10 +106,7 @@ const validatePath = async (path: string, type: "folder" | "json") => {
   }
 };
 
-const generateCronSchedule = (
-  frequency: number,
-  offsetSeconds: number = 0,
-): string => {
+const generateCronSchedule = (frequency: number, offsetSeconds: number = 0): string => {
   const schedules: { [key: number]: number[] } = {
     1: [0],
     2: [0, 12],

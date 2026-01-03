@@ -19,18 +19,14 @@ const createLogger = (options: LoggerOptions): Logger => {
   const write = async (logLevel: LogLevel, message: string, log: any) => {
     const timestamp = iso8601WithOffset;
     const colors = config["ansiColors"];
-    const formatted = `[${timestamp}] [${logLevel.toUpperCase()}] ${message}${
-      log ? ` ${JSON.stringify(log)}` : ""
-    }`;
+    const formatted = `[${timestamp}] [${logLevel.toUpperCase()}] ${message}${log ? ` ${JSON.stringify(log)}` : ""}`;
 
     const filePath = await getLogFilePath(logLevel);
     await appendFile(filePath, formatted + "\n", "utf-8");
 
     if (logToTerminal) {
       const color = logLevel === "error" ? colors.red : colors.cyan;
-      const coloredOutput = `${colors.gray}[${timestamp}]${
-        colors.reset
-      } ${color}[${logLevel.toUpperCase()}]${colors.reset} ${message}${
+      const coloredOutput = `${colors.gray}[${timestamp}]${colors.reset} ${color}[${logLevel.toUpperCase()}]${colors.reset} ${message}${
         log ? ` ${JSON.stringify(log)}` : ""
       }`;
 

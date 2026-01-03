@@ -42,18 +42,13 @@ export const setupSecurity = (mainWindow: BrowserWindow) => {
     });
   });
 
-  session.defaultSession.setPermissionRequestHandler(
-    (webContents, permission, callback) => {
-      const origin = webContents.getURL();
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    const origin = webContents.getURL();
 
-      if (
-        ALLOWED_PERMISSIONS.includes(permission) &&
-        ALLOWED_ORIGINS.includes(origin)
-      ) {
-        callback(true);
-      } else {
-        callback(false);
-      }
-    },
-  );
+    if (ALLOWED_PERMISSIONS.includes(permission) && ALLOWED_ORIGINS.includes(origin)) {
+      callback(true);
+    } else {
+      callback(false);
+    }
+  });
 };

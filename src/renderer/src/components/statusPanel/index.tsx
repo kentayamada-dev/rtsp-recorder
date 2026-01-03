@@ -2,6 +2,7 @@ import { Box, Stack, CircularProgress, Typography } from "@mui/material";
 import { Autorenew, Pause } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useLocale } from "@renderer/i18n";
+import type { StatusPanelProps } from "./types";
 
 const CircularProgressWithLabel = ({ value }: { value: number }) => {
   return (
@@ -43,30 +44,19 @@ const CircularProgressWithLabel = ({ value }: { value: number }) => {
   );
 };
 
-type StatusPanelProps = {
-  isCapturing: boolean;
-  isUploading: boolean;
-};
-
 export const StatusPanel = ({ isCapturing, isUploading }: StatusPanelProps) => {
   const [captureProgress, setCaptureProgress] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { t } = useLocale();
 
   useEffect(() => {
-    const captureProgressUnsubscribe = window.api.on(
-      "capture:progress",
-      ({ progress }) => {
-        setCaptureProgress(progress);
-      },
-    );
+    const captureProgressUnsubscribe = window.api.on("capture:progress", ({ progress }) => {
+      setCaptureProgress(progress);
+    });
 
-    const uploadProgressUnsubscribe = window.api.on(
-      "upload:progress",
-      ({ progress }) => {
-        setUploadProgress(progress);
-      },
-    );
+    const uploadProgressUnsubscribe = window.api.on("upload:progress", ({ progress }) => {
+      setUploadProgress(progress);
+    });
 
     return () => {
       captureProgressUnsubscribe();

@@ -7,11 +7,7 @@ import { config } from "@main/config";
 import { toMutable } from "@main/utils";
 import { i18n } from "@main/i18n";
 
-export const createGoogle = (
-  tokenFile: string,
-  clientSecretFile: string,
-  logger: Logger,
-) => {
+export const createGoogle = (tokenFile: string, clientSecretFile: string, logger: Logger) => {
   const generateToken = async () => {
     let credentials: Auth.Credentials;
     try {
@@ -105,9 +101,7 @@ export const createGoogle = (
       logger.info(`Uploaded: ${videoUrl}`);
       return videoUrl;
     } else {
-      throw new Error(
-        `The upload failed with an unexpected response: ${JSON.stringify(response.data)}`,
-      );
+      throw new Error(`The upload failed with an unexpected response: ${JSON.stringify(response.data)}`);
     }
   };
 
@@ -165,9 +159,7 @@ export const createGoogle = (
       spreadsheetId: sheetId,
     });
 
-    const targetSheet = updatedSheet.data.sheets?.find(
-      (s) => s.properties?.title === sheetName,
-    );
+    const targetSheet = updatedSheet.data.sheets?.find((s) => s.properties?.title === sheetName);
 
     const targetSheetId = targetSheet?.properties?.sheetId;
     if (targetSheetId !== undefined) {

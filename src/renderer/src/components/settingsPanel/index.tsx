@@ -1,30 +1,9 @@
-import {
-  Button,
-  type ButtonProps,
-  Box,
-  Tab,
-  Tabs,
-  type TabsProps,
-  Stack,
-  TextField,
-} from "@mui/material";
-import { useEffect, useState, type JSX } from "react";
-import {
-  GoogleSheetBackupFormField,
-  type GoogleSheetBackupFormFieldProps,
-} from "./googleSheetBackupFormField";
-import { GoogleTokenGenerateFormField } from "./googleTokenGenerateFormField";
+import { Button, type ButtonProps, Box, Tab, Tabs, type TabsProps, Stack, TextField } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useLocale } from "@renderer/i18n";
-
-type TabPanelProps = {
-  children: JSX.Element;
-  index: number;
-  value: number;
-};
-
-type SettingsPanelProps = GoogleSheetBackupFormFieldProps & {
-  handleDeleteData: ButtonProps["onClick"];
-};
+import type { SettingsPanelProps, TabPanelProps } from "./types";
+import { GoogleTokenGenerateFormField } from "../googleTokenGenerateFormField";
+import { GoogleSheetBackupFormField } from "../googleSheetBackupFormField";
 
 const TabPanel = (props: TabPanelProps) => {
   const { children, value, index } = props;
@@ -45,12 +24,7 @@ const TabPanel = (props: TabPanelProps) => {
   );
 };
 
-export const SettingsPanel = ({
-  isGoogleSheetEnabeld,
-  handleDeleteData,
-  handleGoogleSheetToggleChange,
-  handleSaveGoogleSheetData,
-}: SettingsPanelProps) => {
+export const SettingsPanel = ({ handleDeleteData, handleSaveGoogleSheet }: SettingsPanelProps) => {
   const { t } = useLocale();
   const tabs = {
     upload: {
@@ -115,11 +89,7 @@ export const SettingsPanel = ({
         <GoogleTokenGenerateFormField />
       </TabPanel>
       <TabPanel value={tabsValue} index={tabs.backup.value}>
-        <GoogleSheetBackupFormField
-          handleGoogleSheetToggleChange={handleGoogleSheetToggleChange}
-          handleSaveGoogleSheetData={handleSaveGoogleSheetData}
-          isGoogleSheetEnabeld={isGoogleSheetEnabeld}
-        />
+        <GoogleSheetBackupFormField handleSaveGoogleSheet={handleSaveGoogleSheet} />
       </TabPanel>
       <TabPanel value={tabsValue} index={tabs.data.value}>
         <Stack

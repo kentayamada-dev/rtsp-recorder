@@ -35,5 +35,8 @@
     "googleSecretNotFound": "Googleシークレットファイルが見つかりません",
     "googleSecretFaildLoad": "Googleシークレットファイルの読み込みに失敗しました",
     "googleTokenFaildLoad": "Googleトークンファイルの読み込みに失敗しました"
+  },
+  "success": {
+    "token": "トークンが生成されました"
   }
 }

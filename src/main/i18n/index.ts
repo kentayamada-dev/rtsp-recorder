@@ -2,12 +2,7 @@ import { store } from "@main/store";
 import { app } from "electron";
 import en from "./locales/en.json";
 import ja from "./locales/ja.json";
-import {
-  type SupportedLang,
-  type ValidateTranslations,
-  type Paths,
-  supportedLangs,
-} from "@shared-types/i18n";
+import { type SupportedLang, type ValidateTranslations, type Paths, supportedLangs } from "@shared-types/i18n";
 
 const translations = {
   en,
@@ -35,9 +30,7 @@ export const i18n = (() => {
   };
 
   const t = (key: TranslationKey) => {
-    const value = key
-      .split(".")
-      .reduce((obj, k) => obj?.[k], currentTranslations);
+    const value = key.split(".").reduce((obj, k) => obj?.[k], currentTranslations);
     return value && typeof value === "string" ? value : key;
   };
 
@@ -48,9 +41,7 @@ export const i18n = (() => {
       currentLang = lang;
     } else {
       const systemLang = app.getLocale().split("-")[0];
-      currentLang = isSupportedLang(systemLang)
-        ? systemLang
-        : supportedLangs[0];
+      currentLang = isSupportedLang(systemLang) ? systemLang : supportedLangs[0];
 
       await store.set("lang", currentLang);
     }

@@ -1,32 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Box,
-  Button,
-  Paper,
-  Stack,
-  styled,
-  TextField,
-  Typography,
-  type ButtonProps,
-} from "@mui/material";
+import { Box, Button, Paper, Stack, styled, TextField, Typography, type ButtonProps } from "@mui/material";
 import { useLocale } from "@renderer/i18n";
-import type { GoogleStore } from "@shared-types/form";
 import { useEffect, useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { strictObject, string, type ZodType } from "zod";
+import type { GoogleTokenGenerateFormSchema } from "./types";
 
 const StyledForm = styled("form")(() => ({
   height: "100%",
 }));
 
-type FormSchema = Pick<GoogleStore, "secretFile">;
-
-const initialDefaults: FormSchema = {
+const initialDefaults: GoogleTokenGenerateFormSchema = {
   secretFile: "",
 };
 
 export const GoogleTokenGenerateFormField = () => {
   const { t } = useLocale();
+
   const formSchema = strictObject({
     secretFile: string().refine(
       async (filePath) => {
@@ -38,14 +28,14 @@ export const GoogleTokenGenerateFormField = () => {
       },
       { message: t("error.file") },
     ),
-  }) satisfies ZodType<FormSchema>;
+  }) satisfies ZodType<GoogleTokenGenerateFormSchema>;
 
   const {
     control,
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<FormSchema>({
+  } = useForm<GoogleTokenGenerateFormSchema>({
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: initialDefaults,
@@ -54,14 +44,18 @@ export const GoogleTokenGenerateFormField = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const onSubmit: SubmitHandler<FormSchema> = async (data) => {
+  const onSubmit: SubmitHandler<GoogleTokenGenerateFormSchema> = async (data) => {
     setIsLoading(true);
+
     window.api.send("google:secretFile", data.secretFile);
+
     const { success, message } = await window.api.invoke("generateGoogleToken");
+
     await window.api.invoke("showDialog", {
       type: success ? "info" : "error",
       message,
     });
+
     setIsLoading(false);
   };
 
@@ -69,6 +63,7 @@ export const GoogleTokenGenerateFormField = () => {
     const selectedFile = await window.api.invoke("selectDialog", {
       type: "json",
     });
+
     if (selectedFile) {
       setValue("secretFile", selectedFile, {
         shouldValidate: true,
@@ -137,11 +132,7 @@ export const GoogleTokenGenerateFormField = () => {
                 width: "20%",
               }}
             >
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={handleGoogleSecretFile}
-              >
+              <Button fullWidth variant="contained" onClick={handleGoogleSecretFile}>
                 {t("form.browse")}
               </Button>
             </Box>

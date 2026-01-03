@@ -1,48 +1,28 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Button,
-  Stack,
-  styled,
-  Switch,
-  TextField,
-  Typography,
-  type SwitchProps,
-} from "@mui/material";
+import { Button, Stack, styled, Switch, TextField, Typography, type SwitchProps } from "@mui/material";
 import { useLocale } from "@renderer/i18n";
 import { onValid } from "@renderer/utils";
-import type { GoogleStore } from "@shared-types/form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { strictObject, string, type ZodType } from "zod";
-
-type FormSchema = GoogleStore["sheet"]["values"];
-
-export type GoogleSheetBackupFormFieldProps = {
-  handleSaveGoogleSheetData: (data: FormSchema) => void;
-  handleGoogleSheetToggleChange: (value: boolean) => void;
-  isGoogleSheetEnabeld: boolean;
-};
+import type { GoogleSheetBackupFormFieldProps, GoogleSheetBackupFormSchema } from "./types";
 
 const StyledForm = styled("form")(() => ({
   height: "100%",
 }));
 
-const initialDefaults: FormSchema = {
+const initialDefaults: GoogleSheetBackupFormSchema = {
   sheetId: "",
   sheetTitle: "",
 };
 
-export const GoogleSheetBackupFormField = ({
-  handleSaveGoogleSheetData,
-  handleGoogleSheetToggleChange,
-  isGoogleSheetEnabeld,
-}: GoogleSheetBackupFormFieldProps) => {
+export const GoogleSheetBackupFormField = ({ handleSaveGoogleSheet }: GoogleSheetBackupFormFieldProps) => {
   const { t } = useLocale();
 
   const formSchema = strictObject({
     sheetId: string().min(1, { message: t("error.empty") }),
     sheetTitle: string().min(1, { message: t("error.empty") }),
-  }) satisfies ZodType<FormSchema>;
+  }) satisfies ZodType<GoogleSheetBackupFormSchema>;
 
   const {
     control,
@@ -50,22 +30,25 @@ export const GoogleSheetBackupFormField = ({
     clearErrors,
     setValue,
     formState: { errors },
-  } = useForm<FormSchema>({
+  } = useForm<GoogleSheetBackupFormSchema>({
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: initialDefaults,
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit: SubmitHandler<FormSchema> = (data) => {
-    handleSaveGoogleSheetData(data);
+  const [googleSheetEnabled, setGoogleSheetEnabled] = useState(false);
+
+  const onSubmit: SubmitHandler<GoogleSheetBackupFormSchema> = (data) => {
+    handleSaveGoogleSheet(data);
   };
 
   const handleChangeSwitch: SwitchProps["onChange"] = (_event, newValue) => {
     if (newValue === false) {
       clearErrors();
     }
-    handleGoogleSheetToggleChange(newValue);
+    setGoogleSheetEnabled(newValue);
+    window.api.send("google:sheet:enabled", newValue);
   };
 
   const sheetIdErrorMessage = errors.sheetId?.message;
@@ -74,10 +57,15 @@ export const GoogleSheetBackupFormField = ({
   useEffect(() => {
     const fetchData = async () => {
       const savedFormState = await window.api.invoke("getGoogleSheetValues");
-      if (!savedFormState) return;
+      if (savedFormState) {
+        onValid(savedFormState.sheetId, (val) => setValue("sheetId", val));
+        onValid(savedFormState.sheetTitle, (val) => setValue("sheetTitle", val));
+      }
 
-      onValid(savedFormState.sheetId, (val) => setValue("sheetId", val));
-      onValid(savedFormState.sheetTitle, (val) => setValue("sheetTitle", val));
+      const enabled = await window.api.invoke("getGoogleSheetEnabled");
+      if (enabled) {
+        setGoogleSheetEnabled(enabled);
+      }
     };
 
     fetchData();
@@ -100,11 +88,7 @@ export const GoogleSheetBackupFormField = ({
             }}
           >
             <Typography variant="h6">{t("form.googleSheet.title")}</Typography>
-            <Switch
-              size="small"
-              checked={isGoogleSheetEnabeld}
-              onChange={handleChangeSwitch}
-            />
+            <Switch size="small" checked={googleSheetEnabled} onChange={handleChangeSwitch} />
           </Stack>
           <Controller
             name="sheetId"
@@ -118,7 +102,7 @@ export const GoogleSheetBackupFormField = ({
                 fullWidth
                 slotProps={{
                   input: {
-                    disabled: !isGoogleSheetEnabeld,
+                    disabled: !googleSheetEnabled,
                   },
                 }}
                 {...field}
@@ -137,7 +121,7 @@ export const GoogleSheetBackupFormField = ({
                 fullWidth
                 slotProps={{
                   input: {
-                    disabled: !isGoogleSheetEnabeld,
+                    disabled: !googleSheetEnabled,
                   },
                 }}
                 {...field}
@@ -152,7 +136,7 @@ export const GoogleSheetBackupFormField = ({
             width: "fit-content",
             alignSelf: "flex-end",
           }}
-          disabled={!isGoogleSheetEnabeld}
+          disabled={!googleSheetEnabled}
         >
           {t("form.save")}
         </Button>

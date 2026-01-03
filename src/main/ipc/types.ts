@@ -1,11 +1,6 @@
 import type { FormStore, GoogleStore } from "@shared-types/form";
 import type { createEventSender } from "./sendEvent";
-import type {
-  IpcMainEvent,
-  IpcMainInvokeEvent,
-  MessageBoxOptions,
-  MessageBoxReturnValue,
-} from "electron";
+import type { IpcMainEvent, IpcMainInvokeEvent, MessageBoxOptions, MessageBoxReturnValue } from "electron";
 import type { SupportedLang } from "@shared-types/i18n";
 
 type Args<T> = T extends void ? [] : [T];
@@ -144,15 +139,9 @@ type EventHandlerMap = {
 type SendEvent = ReturnType<typeof createEventSender>;
 
 type Api = {
-  invoke<K extends keyof Invoke>(
-    channel: K,
-    ...args: Args<Invoke[K]["request"]>
-  ): Promise<Invoke[K]["response"]>;
+  invoke<K extends keyof Invoke>(channel: K, ...args: Args<Invoke[K]["request"]>): Promise<Invoke[K]["response"]>;
 
-  send<K extends keyof RendererToMainEvents>(
-    channel: K,
-    ...args: Args<RendererToMainEvents[K]["payload"]>
-  ): void;
+  send<K extends keyof RendererToMainEvents>(channel: K, ...args: Args<RendererToMainEvents[K]["payload"]>): void;
 
   on<K extends keyof MainToRendererEvents>(
     channel: K,
@@ -160,11 +149,4 @@ type Api = {
   ): () => void;
 };
 
-export type {
-  Args,
-  Api,
-  MainToRendererEvents,
-  InvokeHandlerMap,
-  EventHandlerMap,
-  SendEvent,
-};
+export type { Args, Api, MainToRendererEvents, InvokeHandlerMap, EventHandlerMap, SendEvent };

@@ -8,11 +8,7 @@ type PathValue<T, P extends string> = P extends keyof T
 
 type PathKeys<T> = T extends object
   ? {
-      [K in keyof T]: K extends string
-        ? T[K] extends object
-          ? K | `${K}.${PathKeys<T[K]>}`
-          : K
-        : never;
+      [K in keyof T]: K extends string ? (T[K] extends object ? K | `${K}.${PathKeys<T[K]>}` : K) : never;
     }[keyof T]
   : never;
 

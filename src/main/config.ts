@@ -11,10 +11,7 @@ export const config = {
     logs: "Logs",
   },
   google: {
-    scopes: [
-      "https://www.googleapis.com/auth/youtube.upload",
-      "https://www.googleapis.com/auth/spreadsheets",
-    ],
+    scopes: ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/spreadsheets"],
     youtubeUrl: "https://youtu.be/",
   },
   ansiColors: {

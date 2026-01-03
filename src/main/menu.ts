@@ -1,19 +1,9 @@
-import {
-  app,
-  dialog,
-  Menu,
-  shell,
-  type BrowserWindow,
-  type MenuItemConstructorOptions,
-} from "electron";
+import { app, dialog, Menu, shell, type BrowserWindow, type MenuItemConstructorOptions } from "electron";
 import { config } from "./config";
 import { i18n } from "./i18n";
 import type { SupportedLang } from "@shared-types/i18n";
 
-const changeLocaleWithPrompt = async (
-  mainWindow: BrowserWindow,
-  lang: SupportedLang,
-) => {
+const changeLocaleWithPrompt = async (mainWindow: BrowserWindow, lang: SupportedLang) => {
   if (i18n.getCurrentLang() === lang) return;
 
   i18n.changeCurrentLang(lang);
@@ -55,9 +45,7 @@ export const createMenu = (mainWindow: BrowserWindow) => {
       {
         label: i18n.t("menuBar.appSourceCode"),
         click: () => {
-          shell.openExternal(
-            "https://github.com/kentayamada-dev/rtsp-recorder",
-          );
+          shell.openExternal("https://github.com/kentayamada-dev/rtsp-recorder");
         },
       },
     ],
@@ -77,11 +65,6 @@ export const createMenu = (mainWindow: BrowserWindow) => {
     ],
   };
 
-  const template: MenuItemConstructorOptions[] = [
-    fileMenu,
-    aboutMenu,
-    localeMenu,
-    ...(config["dev"] ? [devMenu] : []),
-  ];
+  const template: MenuItemConstructorOptions[] = [fileMenu, aboutMenu, localeMenu, ...(config["dev"] ? [devMenu] : [])];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 };

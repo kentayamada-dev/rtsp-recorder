@@ -84,17 +84,12 @@ const createStore = <Schema extends Record<string, any>>() => {
   };
 
   return {
-    async get<K extends PathKeys<Schema>>(
-      key: K,
-    ): Promise<PathValue<Schema, K> | undefined> {
+    async get<K extends PathKeys<Schema>>(key: K): Promise<PathValue<Schema, K> | undefined> {
       await ready;
       return getNestedValue(data, key as string);
     },
 
-    async set<K extends PathKeys<Schema>>(
-      key: K,
-      value: PathValue<Schema, K>,
-    ): Promise<void> {
+    async set<K extends PathKeys<Schema>>(key: K, value: PathValue<Schema, K>): Promise<void> {
       await ready;
       setNestedValue(data, key as string, value);
       await save();

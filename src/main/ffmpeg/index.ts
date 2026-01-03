@@ -22,17 +22,7 @@ export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
     await mkdir(hourDir, { recursive: true });
 
     return new Promise<void>((resolve, reject) => {
-      const ffmpegProcess = spawn(ffmpegExe, [
-        "-rtsp_transport",
-        "tcp",
-        "-i",
-        rtspUrl,
-        "-vframes",
-        "1",
-        "-q:v",
-        "1",
-        filepath,
-      ]);
+      const ffmpegProcess = spawn(ffmpegExe, ["-rtsp_transport", "tcp", "-i", rtspUrl, "-vframes", "1", "-q:v", "1", filepath]);
 
       ffmpegProcess.on("error", (err) => reject(err));
 
@@ -56,9 +46,7 @@ export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
     onProgress?: (progress: number) => void,
   ): Promise<{ videoFile: string }> => {
     const videoFile = join(inputFolder, "output.mp4");
-    const listContent = images
-      .map((img) => `file '${img.replace(/\\/g, "/")}'\nduration ${1 / fps}`)
-      .join("\n");
+    const listContent = images.map((img) => `file '${img.replace(/\\/g, "/")}'\nduration ${1 / fps}`).join("\n");
 
     await writeFile(imgListFile, listContent, "utf-8");
 
@@ -93,10 +81,7 @@ export const createFFmpeg = (ffmpegExe: string, logger: Logger) => {
 
         if (frameMatch) {
           const currentFrame = parseInt(frameMatch[1]);
-          const progress = Math.min(
-            Math.round((currentFrame / images.length) * 100),
-            100,
-          );
+          const progress = Math.min(Math.round((currentFrame / images.length) * 100), 100);
           if (progress !== lastProgress) {
             lastProgress = progress;
             onProgress?.(progress);

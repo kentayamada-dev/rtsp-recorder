@@ -32,11 +32,5 @@
     // Projects
     "incremental": true
   },
-  "include": [
-    "electron.vite.config.ts",
-    "src/main/**/*",
-    "src/preload/**/*",
-    "src/shared/form.ts",
-    "src/shared/i18n.ts"
-  ]
+  "include": ["electron.vite.config.ts", "src/main/**/*", "src/preload/**/*", "src/shared/form.ts", "src/shared/i18n.ts"]
 }

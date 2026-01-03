@@ -9,11 +9,9 @@ import { config } from "@main/config";
 import { i18n } from "@main/i18n";
 
 const registerInvokeHandlers = (handlers: InvokeHandlerMap) => {
-  (Object.keys(handlers) as Array<keyof InvokeHandlerMap>).forEach(
-    (channel) => {
-      ipcMain.handle(channel, handlers[channel]);
-    },
-  );
+  (Object.keys(handlers) as Array<keyof InvokeHandlerMap>).forEach((channel) => {
+    ipcMain.handle(channel, handlers[channel]);
+  });
 };
 
 export const setupInvokeHandlers = (mainWindow: BrowserWindow) => {
@@ -98,15 +96,11 @@ export const setupInvokeHandlers = (mainWindow: BrowserWindow) => {
         throw new Error(i18n.t("error.googleSecretNotFound"));
       }
 
-      const google = createGoogle(
-        join(appData, config["files"]["token"]),
-        googleSecretFile,
-        logger,
-      );
+      const google = createGoogle(join(appData, config["files"]["token"]), googleSecretFile, logger);
 
       try {
         await google.generateToken();
-        return { success: true, message: "Token generated successfully" };
+        return { success: true, message: i18n.t("success.token") };
       } catch (error) {
         const { message } = handleError(error);
         return { success: false, message };

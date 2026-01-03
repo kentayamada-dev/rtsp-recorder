@@ -7,17 +7,11 @@ import { setupAutoUpdater } from "@main/updater";
 import { config } from "./config";
 import type { WindowState } from "./store/type";
 
-const createMainWindow = async (
-  windowState: WindowState | undefined,
-): Promise<BrowserWindow> => {
+const createMainWindow = async (windowState: WindowState | undefined): Promise<BrowserWindow> => {
   const mainWindow = new BrowserWindow({
     ...(windowState
       ? {
-          ...Object.fromEntries(
-            Object.entries(windowState).filter(
-              ([, value]) => value !== undefined,
-            ),
-          ),
+          ...Object.fromEntries(Object.entries(windowState).filter(([, value]) => value !== undefined)),
         }
       : {
           center: true,

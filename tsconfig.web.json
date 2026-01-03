@@ -32,10 +32,5 @@
     // Projects
     "incremental": true
   },
-  "include": [
-    "src/renderer/**/*",
-    "src/shared/global.d.ts",
-    "src/shared/form.ts",
-    "src/shared/i18n.ts"
-  ]
+  "include": ["src/renderer/**/*", "src/shared/global.d.ts", "src/shared/form.ts", "src/shared/i18n.ts"]
 }

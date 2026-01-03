@@ -1,17 +1,7 @@
-import {
-  createContext,
-  useState,
-  useContext,
-  type JSX,
-  useEffect,
-} from "react";
+import { createContext, useState, useContext, type JSX, useEffect } from "react";
 import en from "./locales/en.json";
 import ja from "./locales/ja.json";
-import type {
-  SupportedLang,
-  ValidateTranslations,
-  Paths,
-} from "@shared-types/i18n";
+import type { SupportedLang, ValidateTranslations, Paths } from "@shared-types/i18n";
 
 type LocaleContextType = {
   locale: SupportedLang;
@@ -31,9 +21,7 @@ type LocaleProviderProps = {
   children: JSX.Element;
 };
 
-export const LocaleProvider = ({
-  children,
-}: LocaleProviderProps): JSX.Element => {
+export const LocaleProvider = ({ children }: LocaleProviderProps): JSX.Element => {
   const [locale, setLocale] = useState<SupportedLang>("en");
   const [isReady, setIsReady] = useState(false);
 
@@ -52,11 +40,7 @@ export const LocaleProvider = ({
 
   if (!isReady) return <></>;
 
-  return (
-    <LocaleContext.Provider value={{ locale, setLocale }}>
-      {children}
-    </LocaleContext.Provider>
-  );
+  return <LocaleContext.Provider value={{ locale, setLocale }}>{children}</LocaleContext.Provider>;
 };
 
 type UseLocaleReturn = {
@@ -74,9 +58,7 @@ export const useLocale = (): UseLocaleReturn => {
 
   const { locale, setLocale } = context;
   const t = (key: TranslationKey): string => {
-    const value = key
-      .split(".")
-      .reduce((obj, k) => obj?.[k], translations[locale]);
+    const value = key.split(".").reduce((obj, k) => obj?.[k], translations[locale]);
     return typeof value === "string" ? value : key;
   };
 

@@ -1,12 +1,14 @@
 import { LazyLog } from "@melloware/react-logviewer";
-import { Grid, Stack, Box, Button } from "@mui/material";
+import { Grid, Stack, Box, Button, type ButtonProps } from "@mui/material";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { CustomToggleButtonField } from "./customToggleButtonField";
 import { formatTimestamp } from "@renderer/utils";
 import { useLocale } from "@renderer/i18n";
+import type { CustomToggleButtonFieldProps } from "../customToggleButtonField/types";
+import { CustomToggleButtonField } from "../customToggleButtonField";
 
 export const MessagePanel = () => {
   const { t } = useLocale();
+
   const autoUpdateState = {
     on: t("messagePanel.autoUpdate.on"),
     off: t("messagePanel.autoUpdate.off"),
@@ -17,8 +19,9 @@ export const MessagePanel = () => {
     upload: t("messagePanel.messageTypes.upload"),
   } as const;
 
-  const [messageType, setMessageType] = useState<string>(messageTypes.capture);
-  const [autoUpdate, setAutoUpdate] = useState<string>(autoUpdateState.on);
+  const [messageType, setMessageType] = useState(messageTypes.capture);
+  const [autoUpdate, setAutoUpdate] = useState(autoUpdateState.on);
+
   const useMessageRefsMap = (): Record<string, RefObject<LazyLog | null>> => {
     return {
       [messageTypes.capture]: useRef<LazyLog>(null),
@@ -30,38 +33,28 @@ export const MessagePanel = () => {
   const captureUnsubscribeRef = useRef<() => void>(() => {});
   const uploadUnsubscribeRef = useRef<() => void>(() => {});
 
-  const handleMessageTypeChange = (newType: string) => {
+  const handleMessageTypeChange: CustomToggleButtonFieldProps<string>["onChange"] = (newType) => {
     setMessageType(newType);
   };
 
-  const handleAutoUpdateChange = (newValue: string) => {
+  const handleAutoUpdateChange: CustomToggleButtonFieldProps<string>["onChange"] = (newValue) => {
     setAutoUpdate(newValue);
   };
 
-  const handleClearMessages = () => {
+  const handleClearMessages: ButtonProps["onClick"] = () => {
     messageRef[messageType]?.current?.clear();
   };
 
   useEffect(() => {
     if (autoUpdate === autoUpdateState.on) {
-      uploadUnsubscribeRef.current = window.api.on(
-        "upload:message",
-        ({ message }) => {
-          const timestampedMessage = `[${formatTimestamp()}] ${message}`;
-          messageRef[messageTypes.upload]?.current?.appendLines([
-            timestampedMessage,
-          ]);
-        },
-      );
-      captureUnsubscribeRef.current = window.api.on(
-        "capture:message",
-        ({ message }) => {
-          const timestampedMessage = `[${formatTimestamp()}] ${message}`;
-          messageRef[messageTypes.capture]?.current?.appendLines([
-            timestampedMessage,
-          ]);
-        },
-      );
+      uploadUnsubscribeRef.current = window.api.on("upload:message", ({ message }) => {
+        const timestampedMessage = `[${formatTimestamp()}] ${message}`;
+        messageRef[messageTypes.upload]?.current?.appendLines([timestampedMessage]);
+      });
+      captureUnsubscribeRef.current = window.api.on("capture:message", ({ message }) => {
+        const timestampedMessage = `[${formatTimestamp()}] ${message}`;
+        messageRef[messageTypes.capture]?.current?.appendLines([timestampedMessage]);
+      });
     } else {
       uploadUnsubscribeRef.current();
       captureUnsubscribeRef.current();
@@ -77,10 +70,7 @@ export const MessagePanel = () => {
       <Grid size={9}>
         {Object.values(messageTypes).map((type) => {
           return (
-            <Box
-              key={type}
-              sx={{ display: messageType === type ? "block" : "none" }}
-            >
+            <Box key={type} sx={{ display: messageType === type ? "block" : "none" }}>
               <LazyLog
                 caseInsensitive
                 enableSearch
@@ -118,12 +108,7 @@ export const MessagePanel = () => {
             options={Object.values(autoUpdateState)}
             onChange={handleAutoUpdateChange}
           />
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleClearMessages}
-            fullWidth
-          >
+          <Button variant="outlined" color="error" onClick={handleClearMessages} fullWidth>
             {t("messagePanel.clear")}
           </Button>
         </Stack>

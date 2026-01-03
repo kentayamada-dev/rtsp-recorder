@@ -5,10 +5,7 @@ import { getFilesByExtension } from "../utils/index";
 
 describe("ffmpeg", () => {
   const testOutputFolder = join(process.cwd(), ".vitest/test-captures");
-  const ffmpegPath = join(
-    process.cwd(),
-    "node_modules/ffmpeg-static/ffmpeg.exe",
-  );
+  const ffmpegPath = join(process.cwd(), "node_modules/ffmpeg-static/ffmpeg.exe");
   const logger = { info: vi.fn(), error: vi.fn() };
   const ffmpeg = createFFmpeg(ffmpegPath, logger);
 
@@ -48,14 +45,8 @@ describe("ffmpeg", () => {
   it("createVideo", async () => {
     const images = await getFilesByExtension(testOutputFolder, ".png");
 
-    await ffmpeg.createVideo(
-      testOutputFolder,
-      1,
-      join(testOutputFolder, "images_list.tmp"),
-      images,
-      (progress) => {
-        console.log(progress);
-      },
-    );
+    await ffmpeg.createVideo(testOutputFolder, 1, join(testOutputFolder, "images_list.tmp"), images, (progress) => {
+      console.log(progress);
+    });
   });
 });

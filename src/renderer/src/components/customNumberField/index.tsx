@@ -1,28 +1,10 @@
 import { NumberField } from "@base-ui-components/react/number-field";
-import {
-  IconButton,
-  FormControl,
-  FormHelperText,
-  Input,
-  InputAdornment,
-  InputLabel,
-} from "@mui/material";
+import { IconButton, FormControl, FormHelperText, Input, InputAdornment, InputLabel } from "@mui/material";
 import { KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
 import { useId } from "react";
+import type { CustomNumberFieldProps } from "./types";
 
-type CustomNumberFieldProps = NumberField.Root.Props & {
-  label: string;
-  error: boolean;
-  helperText: string;
-};
-
-export const CustomNumberField = ({
-  id: idProp,
-  label,
-  error,
-  helperText,
-  ...other
-}: CustomNumberFieldProps) => {
+export const CustomNumberField = ({ id: idProp, label, error, helperText, ...other }: CustomNumberFieldProps) => {
   let id = useId();
   if (idProp) {
     id = idProp;
@@ -70,17 +52,11 @@ export const CustomNumberField = ({
                   }}
                 >
                   <NumberField.Increment render={<IconButton size="small" />}>
-                    <KeyboardArrowUp
-                      fontSize="small"
-                      sx={{ transform: "translateY(2px)" }}
-                    />
+                    <KeyboardArrowUp fontSize="small" sx={{ transform: "translateY(2px)" }} />
                   </NumberField.Increment>
 
                   <NumberField.Decrement render={<IconButton size="small" />}>
-                    <KeyboardArrowDown
-                      fontSize="small"
-                      sx={{ transform: "translateY(-2px)" }}
-                    />
+                    <KeyboardArrowDown fontSize="small" sx={{ transform: "translateY(-2px)" }} />
                   </NumberField.Decrement>
                 </InputAdornment>
               }
@@ -92,9 +68,7 @@ export const CustomNumberField = ({
         }}
       />
 
-      <FormHelperText sx={{ ml: 0, "&:empty": { mt: 0 } }}>
-        {helperText}
-      </FormHelperText>
+      <FormHelperText sx={{ ml: 0, "&:empty": { mt: 0 } }}>{helperText}</FormHelperText>
     </NumberField.Root>
   );
 };

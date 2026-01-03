@@ -74,6 +74,7 @@
   "dialog": {
     "yes": "Yes",
     "no": "No",
+    "saved": "Saved Successfully",
     "message": "Are you sure you want to delete?"
   }
 }

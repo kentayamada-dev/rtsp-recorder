@@ -20,36 +20,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { useEffect } from "react";
 import { Info, Pause, PlayArrow } from "@mui/icons-material";
-import type { FormStore } from "@shared-types/form";
 import { onValid } from "@renderer/utils";
-import { CustomNumberField } from "./customNumberField";
 import { useLocale } from "@renderer/i18n";
+import type { UploadFormFieldProps, UploadFormSchema } from "./types";
+import { CustomNumberField } from "../customNumberField";
 
 const StyledForm = styled("form")(() => ({
   height: "100%",
 }));
 
-type FormSchema = FormStore["uploadForm"];
-
-type UploadFormFieldProps = {
-  clearForm: boolean;
-  handleClearForm: (fn: () => void) => void;
-  isUploading: boolean;
-  onStartUpload: (data: FormSchema) => void;
-  onStopUpload: () => void;
-};
-
-const initialDefaults: FormSchema = {
+const initialDefaults: UploadFormSchema = {
   inputFolder: "",
   numberUpload: 1,
   fps: 1,
 };
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
-  <Tooltip
-    {...props}
-    {...(className ? { classes: { popper: className } } : {})}
-  />
+  <Tooltip {...props} {...(className ? { classes: { popper: className } } : {})} />
 ))(() => ({
   [`& .${tooltipClasses.tooltip}`]: {
     backgroundColor: "#23272e",
@@ -58,11 +45,11 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 export const UploadFormField = ({
-  clearForm,
+  isClearingForm,
   handleClearForm,
   isUploading,
-  onStartUpload,
-  onStopUpload,
+  handleStartUpload,
+  handleStopUpload,
 }: UploadFormFieldProps) => {
   const { t } = useLocale();
   const formSchema = strictObject({
@@ -78,28 +65,27 @@ export const UploadFormField = ({
     ),
     numberUpload: number().min(1).max(6),
     fps: number().min(1),
-  }) satisfies ZodType<FormSchema>;
+  }) satisfies ZodType<UploadFormSchema>;
 
   const {
     control,
     handleSubmit,
     setValue,
     reset,
-    getValues,
     formState: { errors },
-  } = useForm<FormSchema>({
+  } = useForm<UploadFormSchema>({
     reValidateMode: "onBlur",
     mode: "onBlur",
     defaultValues: initialDefaults,
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit: SubmitHandler<FormSchema> = async (data) => {
+  const onSubmit: SubmitHandler<UploadFormSchema> = async (data) => {
     if (isUploading) {
-      onStopUpload();
+      handleStopUpload();
       return;
     }
-    onStartUpload(data);
+    handleStartUpload(data);
   };
 
   const handleSelectFolder: ButtonProps["onClick"] = async () => {
@@ -122,12 +108,8 @@ export const UploadFormField = ({
       const savedFormState = await window.api.invoke("getUploadForm");
       if (!savedFormState) return;
 
-      onValid(savedFormState.inputFolder, (val) =>
-        setValue("inputFolder", val),
-      );
-      onValid(savedFormState.numberUpload, (val) =>
-        setValue("numberUpload", val),
-      );
+      onValid(savedFormState.inputFolder, (val) => setValue("inputFolder", val));
+      onValid(savedFormState.numberUpload, (val) => setValue("numberUpload", val));
       onValid(savedFormState.fps, (val) => setValue("fps", val));
     };
 
@@ -136,16 +118,7 @@ export const UploadFormField = ({
 
   useEffect(() => {
     handleClearForm(reset);
-  }, [clearForm]);
-
-  useEffect(() => {
-    const { inputFolder, numberUpload, fps } = getValues();
-    window.api.send("form:upload", {
-      numberUpload,
-      inputFolder,
-      fps,
-    });
-  }, []);
+  }, [isClearingForm]);
 
   return (
     <StyledForm onSubmit={handleSubmit(onSubmit)}>
@@ -181,14 +154,8 @@ export const UploadFormField = ({
                   control={control}
                   name="numberUpload"
                   render={({ field }) => (
-                    <FormControl
-                      fullWidth
-                      variant="standard"
-                      error={Boolean(numberUploadErrorMessage)}
-                    >
-                      <InputLabel id="numberUpload-label">
-                        {t("form.upload.uploadTimes")}
-                      </InputLabel>
+                    <FormControl fullWidth variant="standard" error={Boolean(numberUploadErrorMessage)}>
+                      <InputLabel id="numberUpload-label">{t("form.upload.uploadTimes")}</InputLabel>
                       <Select
                         labelId="numberUpload-label"
                         label={t("form.upload.uploadTimes")}
@@ -201,9 +168,7 @@ export const UploadFormField = ({
                           </MenuItem>
                         ))}
                       </Select>
-                      <FormHelperText>
-                        {numberUploadErrorMessage || " "}
-                      </FormHelperText>
+                      <FormHelperText>{numberUploadErrorMessage || " "}</FormHelperText>
                     </FormControl>
                   )}
                 />
@@ -219,9 +184,7 @@ export const UploadFormField = ({
                 <HtmlTooltip
                   title={
                     <>
-                      <ul
-                        style={{ margin: 0, paddingLeft: 10, paddingRight: 10 }}
-                      >
+                      <ul style={{ margin: 0, paddingLeft: 10, paddingRight: 10 }}>
                         <li>{t("form.upload.uploadOptions.1")}</li>
                         <li>{t("form.upload.uploadOptions.2")}</li>
                         <li>{t("form.upload.uploadOptions.3")}</li>
@@ -243,11 +206,7 @@ export const UploadFormField = ({
                 <CustomNumberField
                   label={t("form.upload.fps")}
                   readOnly={isUploading}
-                  onValueChange={(v) =>
-                    field.onChange(
-                      typeof v === "number" && v >= 1 ? v : initialDefaults.fps,
-                    )
-                  }
+                  onValueChange={(v) => field.onChange(typeof v === "number" && v >= 1 ? v : initialDefaults.fps)}
                   error={Boolean(fpsErrorMessage)}
                   helperText={fpsErrorMessage || " "}
                   min={1}
@@ -292,12 +251,7 @@ export const UploadFormField = ({
                   width: "20%",
                 }}
               >
-                <Button
-                  disabled={isUploading}
-                  fullWidth
-                  variant="contained"
-                  onClick={handleSelectFolder}
-                >
+                <Button disabled={isUploading} fullWidth variant="contained" onClick={handleSelectFolder}>
                   {t("form.browse")}
                 </Button>
               </Box>

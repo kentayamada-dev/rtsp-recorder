@@ -35,5 +35,8 @@
     "googleSecretNotFound": "Google secret file not found",
     "googleSecretFaildLoad": "Failed to load google secret file",
     "googleTokenFaildLoad": "Failed to load google token file"
+  },
+  "success": {
+    "token": "Token generated successfully"
   }
 }
