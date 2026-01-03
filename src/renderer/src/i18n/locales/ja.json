@@ -54,7 +54,7 @@
     "messageTypes": {
       "capture": "キャプチャ",
       "upload": "アップロード",
-      "title": "メッセージタイプ"
+      "title": "ログ"
     }
   },
   "settingPanel": {

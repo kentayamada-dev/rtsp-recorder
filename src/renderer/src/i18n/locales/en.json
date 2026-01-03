@@ -54,7 +54,7 @@
     "messageTypes": {
       "capture": "Capture",
       "upload": "Upload",
-      "title": "Message Type"
+      "title": "Log"
     }
   },
   "settingPanel": {

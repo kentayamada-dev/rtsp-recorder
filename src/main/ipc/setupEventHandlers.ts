@@ -52,9 +52,7 @@ export const setupEventHandlers = (sendEvent: SendEvent, mainWindow: BrowserWind
       }, interval * 1000);
     },
     "capture:stop": () => {
-      if (captureInterval) {
-        clearInterval(captureInterval);
-      }
+      clearInterval(captureInterval);
       sendEvent("capture:message", {
         message: "Capture stopped",
       });
