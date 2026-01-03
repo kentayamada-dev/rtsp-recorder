@@ -38,5 +38,17 @@
   },
   "success": {
     "token": "Token generated successfully"
+  },
+  "event": {
+    "captureStarted": "Capture started",
+    "captureProgress": "Capture in progress",
+    "captureStopped": "Capture stopped",
+    "videoCreationStarted": "Video creation started",
+    "videoCreationStopped": "Video creation stopped",
+    "videoCreationProgress": "Video creation in progress",
+    "videoCreationCompleted": "Video creation completed",
+    "videoUploadingStarted": "Video upload started",
+    "videoUploadingProgress": "Video upload in progress",
+    "videoUploadingCompleted": "Video upload completed"
   }
 }

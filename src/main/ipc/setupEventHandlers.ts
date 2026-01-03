@@ -39,22 +39,23 @@ export const setupEventHandlers = (sendEvent: SendEvent, mainWindow: BrowserWind
     },
     "capture:start": (_event, { interval, ...rest }) => {
       sendEvent("capture:message", {
-        message: "Capture started",
+        message: i18n.t("event.captureStarted"),
       });
 
       captureInterval = setInterval(async () => {
         await ffmpeg.captureFrame({
           ...rest,
           onCapture: (filename) => {
-            sendEvent("capture:message", { message: `Captured: ${filename}` });
+            sendEvent("capture:message", { message: `${i18n.t("event.captureProgress")}: ${filename}` });
           },
         });
       }, interval * 1000);
     },
     "capture:stop": () => {
       clearInterval(captureInterval);
+
       sendEvent("capture:message", {
-        message: "Capture stopped",
+        message: i18n.t("event.captureStopped"),
       });
     },
 
@@ -86,7 +87,7 @@ export const setupEventHandlers = (sendEvent: SendEvent, mainWindow: BrowserWind
           }
 
           sendEvent("capture:message", {
-            message: "Creating video...",
+            message: i18n.t("event.videoCreationStarted"),
           });
 
           const { videoFile } = await ffmpeg.createVideo(
@@ -97,19 +98,19 @@ export const setupEventHandlers = (sendEvent: SendEvent, mainWindow: BrowserWind
             (progress) => {
               sendEvent("capture:progress", { progress });
               sendEvent("capture:message", {
-                message: `Creating video: ${progress}% complete`,
+                message: `${i18n.t("event.videoCreationProgress")}: ${progress}%`,
               });
             },
           );
 
           sendEvent("capture:message", {
-            message: `Video created: ${videoFile}`,
+            message: `${i18n.t("event.videoCreationCompleted")}: ${videoFile}`,
           });
 
           await deleteFiles(images);
 
           sendEvent("upload:message", {
-            message: "Uploading video...",
+            message: i18n.t("event.videoUploadingStarted"),
           });
 
           const secretFile = await store.get("google.secretFile");
@@ -132,12 +133,12 @@ export const setupEventHandlers = (sendEvent: SendEvent, mainWindow: BrowserWind
           const videoUrl = await google.uploadVideo(googleAuthClient, videoTitle, videoFile, (progress) => {
             sendEvent("upload:progress", { progress });
             sendEvent("upload:message", {
-              message: `Upload video: ${progress}% complete`,
+              message: `${i18n.t("event.videoUploadingProgress")}: ${progress}%`,
             });
           });
 
           sendEvent("upload:message", {
-            message: `Uploaded: ${videoUrl}`,
+            message: `${i18n.t("event.videoUploadingCompleted")}: ${videoUrl}`,
           });
 
           const googleSheetEnabled = await store.get("google.sheet.enabled");
@@ -170,6 +171,10 @@ export const setupEventHandlers = (sendEvent: SendEvent, mainWindow: BrowserWind
     },
     "upload:stop": () => {
       scheduledUploadTask?.stop();
+
+      sendEvent("capture:message", {
+        message: i18n.t("event.videoCreationStopped"),
+      });
     },
   });
 };

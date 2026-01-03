@@ -38,5 +38,17 @@
   },
   "success": {
     "token": "トークンが生成されました"
+  },
+  "event": {
+    "captureStarted": "キャプチャを開始しました",
+    "captureProgress": "キャプチャ処理中",
+    "captureStopped": "キャプチャを停止しました",
+    "videoCreationStarted": "ビデオ作成を開始しました",
+    "videoCreationStopped": "ビデオ作成を停止しました",
+    "videoCreationProgress": "ビデオ作成処理中",
+    "videoCreationCompleted": "ビデオ作成が完了しました",
+    "videoUploadingStarted": "ビデオアップロードを開始しました",
+    "videoUploadingProgress": "ビデオアップロード処理中",
+    "videoUploadingCompleted": "ビデオアップロードが完了しました"
   }
 }
